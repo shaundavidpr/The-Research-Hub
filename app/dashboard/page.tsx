@@ -12,6 +12,11 @@ import {
   FileQuestion,
   Plus,
   ArrowRight,
+  Users,
+  Globe,
+  Sparkles,
+  Target,
+  TrendingUp
 } from "lucide-react"
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
@@ -23,25 +28,28 @@ export default function DashboardPage() {
   return (
     <DashboardShell>
       <DashboardHeader
-        heading="Dashboard"
-        text="Welcome back to your research workspace."
+        heading="Research Dashboard"
+        text="Welcome back! Here's an overview of your research activities and progress."
         actions={
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            New Project
+          <Button asChild>
+            <Link href="/projects">
+              <Plus className="mr-2 h-4 w-4" />
+              New Project
+            </Link>
           </Button>
         }
       />
 
+      {/* Quick Stats */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Notes</CardTitle>
+            <CardTitle className="text-sm font-medium">Research Notes</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Start creating research notes</p>
+            <div className="text-2xl font-bold">24</div>
+            <p className="text-xs text-muted-foreground">+3 this week</p>
           </CardContent>
         </Card>
         <Card>
@@ -50,8 +58,8 @@ export default function DashboardPage() {
             <FolderOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Upload your research materials</p>
+            <div className="text-2xl font-bold">156</div>
+            <p className="text-xs text-muted-foreground">+12 this week</p>
           </CardContent>
         </Card>
         <Card>
@@ -60,22 +68,23 @@ export default function DashboardPage() {
             <Brain className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Ask Aethon for research assistance</p>
+            <div className="text-2xl font-bold">89</div>
+            <p className="text-xs text-muted-foreground">+15 this week</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Deadlines</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Community Connections</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">Add research milestones</p>
+            <div className="text-2xl font-bold">47</div>
+            <p className="text-xs text-muted-foreground">+5 new followers</p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Main Content Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
@@ -97,21 +106,35 @@ export default function DashboardPage() {
         </Card>
       </div>
 
+      {/* Quick Actions Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
               <FileText className="mr-2 h-5 w-5 text-primary" />
-              Quick Notes
+              Smart Notes
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-2">
-            <div className="flex h-[180px] flex-col items-center justify-center rounded-md border border-dashed">
-              <div className="flex flex-col items-center justify-center space-y-2 p-4 text-center">
-                <FileText className="h-10 w-10 text-muted-foreground/60" />
-                <h3 className="text-lg font-semibold">No notes yet</h3>
-                <p className="text-sm text-muted-foreground">Create your first research note to get started.</p>
-              </div>
+            <div className="space-y-2">
+              <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3" asChild>
+                <Link href="/notes">
+                  <BookOpen className="mr-2 h-4 w-4 text-primary" />
+                  <span>Create Research Note</span>
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3" asChild>
+                <Link href="/personal-notes">
+                  <FileText className="mr-2 h-4 w-4 text-primary" />
+                  <span>Personal Note</span>
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3" asChild>
+                <Link href="/notes">
+                  <Target className="mr-2 h-4 w-4 text-primary" />
+                  <span>View All Notes</span>
+                </Link>
+              </Button>
             </div>
           </CardContent>
           <div className="px-6 pb-4">
@@ -128,7 +151,7 @@ export default function DashboardPage() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
               <Clock className="mr-2 h-5 w-5 text-primary" />
-              Upcoming Deadlines
+              Research Timeline
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-2">
@@ -137,7 +160,7 @@ export default function DashboardPage() {
           <div className="px-6 pb-4">
             <Button asChild variant="outline" className="w-full">
               <Link href="/calendar">
-                View Calendar
+                View Timeline
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -148,22 +171,22 @@ export default function DashboardPage() {
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center">
               <Brain className="mr-2 h-5 w-5 text-primary" />
-              Ask Aethon
+              Aethon AI Assistant
             </CardTitle>
           </CardHeader>
           <CardContent className="pb-2">
             <div className="space-y-2">
               <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3">
-                <BookOpen className="mr-2 h-4 w-4 text-primary" />
-                <span>Summarize a research paper</span>
+                <Sparkles className="mr-2 h-4 w-4 text-primary" />
+                <span>Analyze Research Papers</span>
               </Button>
               <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3">
                 <BarChart className="mr-2 h-4 w-4 text-primary" />
-                <span>Analyze my research data</span>
+                <span>Generate Insights</span>
               </Button>
               <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3">
                 <FileQuestion className="mr-2 h-4 w-4 text-primary" />
-                <span>Generate research questions</span>
+                <span>Research Questions</span>
               </Button>
             </div>
           </CardContent>
@@ -175,6 +198,87 @@ export default function DashboardPage() {
               </Link>
             </Button>
           </div>
+        </Card>
+      </div>
+
+      {/* Community and Tools */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Globe className="mr-2 h-5 w-5 text-primary" />
+              Research Community
+            </CardTitle>
+            <CardDescription>Connect with researchers worldwide</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Active Researchers</span>
+                <span className="font-bold">12,450</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">Papers Shared Today</span>
+                <span className="font-bold">234</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">New Collaborations</span>
+                <span className="font-bold">18</span>
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <Button asChild variant="outline" className="flex-1">
+                <Link href="/community">
+                  <Globe className="mr-2 h-4 w-4" />
+                  Explore
+                </Link>
+              </Button>
+              <Button asChild className="flex-1">
+                <Link href="/collaboration">
+                  <Users className="mr-2 h-4 w-4" />
+                  Collaborate
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <TrendingUp className="mr-2 h-5 w-5 text-primary" />
+              Research Tools
+            </CardTitle>
+            <CardDescription>Access your research toolkit</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link href="/files">
+                  <FolderOpen className="mr-2 h-4 w-4" />
+                  Files
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/citations">
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Citations
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/analytics">
+                  <BarChart className="mr-2 h-4 w-4" />
+                  Analytics
+                </Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/publish">
+                  <FileText className="mr-2 h-4 w-4" />
+                  Publish
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
         </Card>
       </div>
     </DashboardShell>

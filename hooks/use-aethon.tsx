@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
+import { aethonAI } from "@/lib/aethon-ai"
 
 interface MessagePart {
   type: string
@@ -34,36 +35,32 @@ export function useAethon() {
     }
 
     setMessages((prev) => [...prev, userMessage])
+    const currentInput = input
     setInput("")
     setIsLoading(true)
 
-    // Simulate AI response
-    setTimeout(() => {
-      // This would normally be an API call to an AI service
-      const aiResponses: Record<string, string> = {
-        "Summarize the key findings from my latest uploaded papers":
-          "I don't see any uploaded papers in your account yet. Once you upload research papers to your files section, I can analyze them and provide a summary of key findings. Would you like me to guide you through the process of uploading and organizing your research papers?",
-
-        "Generate a literature review outline for my research topic":
-          "I'd be happy to help create a literature review outline. To provide a tailored outline, I need to know your specific research topic. Could you share what area you're researching? Once you provide that information, I can generate a comprehensive literature review structure with relevant sections and subsections.",
-
-        "Suggest research questions based on gaps in the current literature":
-          "To suggest targeted research questions based on literature gaps, I'll need more information about your research domain and interests. What specific field or topic are you investigating? With that context, I can identify potential gaps and formulate research questions that address unexplored areas in the current literature.",
-      }
-
-      // Default response for inputs not in our predefined list
-      const responseText =
-        aiResponses[input.trim()] ||
-        "I'm Aethon, your research assistant. I can help analyze papers, generate literature reviews, suggest research questions, and organize your research materials. To provide more specific assistance, could you tell me more about your research topic and what you're working on?"
-
+    try {
+      // Use the enhanced Aethon AI
+      const response = await aethonAI.generateResponse(currentInput)
+      
       const assistantMessage: Message = {
         role: "assistant",
-        parts: [{ type: "text", text: responseText }],
+        parts: [{ type: "text", text: response.text }],
       }
 
       setMessages((prev) => [...prev, assistantMessage])
+    } catch (error) {
+      console.error('Aethon error:', error)
+      
+      const errorMessage: Message = {
+        role: "assistant",
+        parts: [{ type: "text", text: "I apologize, but I encountered an error. Please try again." }],
+      }
+
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
       setIsLoading(false)
-    }, 1500)
+    }
   }
 
   return {
