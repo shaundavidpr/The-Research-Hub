@@ -2,199 +2,332 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Send, Sparkles, FileSearch, BookOpen, Lightbulb, Clock, Brain, Zap } from "lucide-react"
-import { DashboardHeader } from "@/components/dashboard-header"
-import { DashboardShell } from "@/components/dashboard-shell"
-import { AethonMessage } from "@/components/aethon-message"
-import { useAethon } from "@/hooks/use-aethon"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Separator } from "@/components/ui/separator"
+import { toast } from "sonner"
+import {
+  Send,
+  Bot,
+  User,
+  Copy,
+  ThumbsUp,
+  ThumbsDown,
+  Sparkles,
+  BookOpen,
+  Search,
+  BarChart3,
+  FileText,
+  Lightbulb,
+} from "lucide-react"
+
+interface Message {
+  id: string
+  content: string
+  sender: "user" | "aethon"
+  timestamp: Date
+  liked?: boolean
+  disliked?: boolean
+}
+
+const quickPrompts = [
+  {
+    icon: BookOpen,
+    title: "Literature Review",
+    prompt: "Help me conduct a systematic literature review on machine learning applications in healthcare",
+  },
+  {
+    icon: Search,
+    title: "Research Methodology",
+    prompt: "What research methodology should I use for studying user behavior in mobile apps?",
+  },
+  {
+    icon: BarChart3,
+    title: "Data Analysis",
+    prompt: "How should I analyze survey data with 500+ responses using statistical methods?",
+  },
+  {
+    icon: FileText,
+    title: "Academic Writing",
+    prompt: "Help me structure the introduction section of my research paper",
+  },
+  {
+    icon: Lightbulb,
+    title: "Research Ideas",
+    prompt: "Suggest innovative research topics in artificial intelligence and ethics",
+  },
+]
 
 export default function AethonPage() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useAethon()
-  const [activeTab, setActiveTab] = useState("chat")
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "1",
+      content:
+        "Hello! I'm Aethon, your AI research assistant. I'm here to help you with literature reviews, research methodology, data analysis, academic writing, and more. How can I assist you with your research today?",
+      sender: "aethon",
+      timestamp: new Date(),
+    },
+  ])
+  const [inputMessage, setInputMessage] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
 
-  const quickPrompts = [
-    "Analyze my research papers and find common themes",
-    "Generate a literature review outline for quantum computing",
-    "Suggest research questions for machine learning in healthcare",
-    "Help me improve my paper's abstract",
-    "Create a research methodology for my study",
-    "Find potential collaborators in my field"
-  ]
+  const callOpenAI = async (message: string): Promise<string> => {
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      })
 
-  const capabilities = [
-    {
-      icon: <FileSearch className="h-5 w-5 text-primary" />,
-      title: "Literature Analysis",
-      description: "Analyze papers, extract insights, and identify research gaps"
-    },
-    {
-      icon: <BookOpen className="h-5 w-5 text-primary" />,
-      title: "Research Writing",
-      description: "Help with abstracts, papers, and academic writing"
-    },
-    {
-      icon: <Lightbulb className="h-5 w-5 text-primary" />,
-      title: "Idea Generation",
-      description: "Generate research questions and hypotheses"
-    },
-    {
-      icon: <Zap className="h-5 w-5 text-primary" />,
-      title: "Methodology Design",
-      description: "Design research methods and experimental approaches"
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to get AI response")
+      }
+
+      const data = await response.json()
+      return data.response
+    } catch (error: any) {
+      console.error("API call failed:", error)
+      throw error
     }
-  ]
+  }
+
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return
+
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      content: inputMessage,
+      sender: "user",
+      timestamp: new Date(),
+    }
+
+    setMessages((prev) => [...prev, userMessage])
+    setInputMessage("")
+    setIsLoading(true)
+
+    try {
+      const aiResponse = await callOpenAI(inputMessage)
+
+      const aethonMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: aiResponse,
+        sender: "aethon",
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, aethonMessage])
+    } catch (error: any) {
+      console.error("Error getting AI response:", error)
+
+      let errorMessage = "I apologize, but I'm having trouble connecting right now. Please try again in a moment."
+
+      if (error.message.includes("API key")) {
+        errorMessage = "There's an issue with the API configuration. Please contact support."
+      } else if (error.message.includes("rate limit")) {
+        errorMessage = "I'm receiving too many requests right now. Please wait a moment and try again."
+      } else if (error.message.includes("quota")) {
+        errorMessage = "The service is temporarily unavailable due to usage limits. Please try again later."
+      }
+
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: errorMessage,
+        sender: "aethon",
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, errorResponse])
+      toast.error("Failed to get AI response")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleQuickPrompt = (prompt: string) => {
+    setInputMessage(prompt)
+  }
+
+  const copyMessage = (content: string) => {
+    navigator.clipboard.writeText(content)
+    toast.success("Message copied to clipboard")
+  }
+
+  const likeMessage = (messageId: string) => {
+    setMessages((prev) =>
+      prev.map((msg) => (msg.id === messageId ? { ...msg, liked: !msg.liked, disliked: false } : msg)),
+    )
+    toast.success("Feedback recorded")
+  }
+
+  const dislikeMessage = (messageId: string) => {
+    setMessages((prev) =>
+      prev.map((msg) => (msg.id === messageId ? { ...msg, disliked: !msg.disliked, liked: false } : msg)),
+    )
+    toast.success("Feedback recorded")
+  }
 
   return (
-    <DashboardShell>
-      <DashboardHeader
-        heading="Aethon AI Research Assistant"
-        text="Your advanced AI companion for research, analysis, and academic writing."
-        icon={<Brain className="h-5 w-5 text-primary" />}
-      />
-
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div className="lg:col-span-1 space-y-6">
-          <Card>
-            <CardContent className="p-4">
-              <h2 className="font-semibold mb-3 flex items-center">
-                <Sparkles className="mr-2 h-4 w-4 text-primary" />
-                Aethon Capabilities
-              </h2>
-              <div className="space-y-3">
-                {capabilities.map((capability, index) => (
-                  <div key={index} className="flex items-start gap-2">
-                    {capability.icon}
-                    <div>
-                      <h3 className="font-medium text-sm">{capability.title}</h3>
-                      <p className="text-xs text-muted-foreground">{capability.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <h2 className="font-semibold mb-3">Quick Prompts</h2>
-              <div className="space-y-2">
-                {quickPrompts.slice(0, 3).map((prompt, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="w-full justify-start text-left h-auto py-2 px-3 text-xs"
-                    onClick={() => {
-                      handleInputChange({
-                        target: { value: prompt },
-                      } as any)
-                    }}
-                  >
-                    {prompt}
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="lg:col-span-3">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="chat">
-                <Sparkles className="mr-2 h-4 w-4" />
-                Aethon Chat
-              </TabsTrigger>
-              <TabsTrigger value="history">
-                <Clock className="mr-2 h-4 w-4" />
-                Chat History
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="chat" className="mt-0">
-              <Card className="border shadow-sm">
-                <CardContent className="p-0">
-                  <div className="flex flex-col h-[600px]">
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                      {messages.length === 0 ? (
-                        <div className="flex h-full items-center justify-center">
-                          <div className="text-center space-y-4 max-w-md">
-                            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 mx-auto">
-                              <Brain className="h-10 w-10 text-primary" />
-                            </div>
-                            <h3 className="font-medium text-lg">I'm Aethon, your research AI assistant</h3>
-                            <p className="text-muted-foreground">
-                              I can help you analyze papers, generate research questions, improve your writing, 
-                              design methodologies, and much more. What would you like to work on today?
-                            </p>
-                            <div className="grid grid-cols-1 gap-2 mt-4">
-                              {quickPrompts.slice(3, 6).map((prompt, index) => (
-                                <Button
-                                  key={index}
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-xs"
-                                  onClick={() => {
-                                    handleInputChange({
-                                      target: { value: prompt },
-                                    } as any)
-                                  }}
-                                >
-                                  {prompt}
-                                </Button>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        messages.map((message, index) => <AethonMessage key={index} message={message} />)
-                      )}
-                      {isLoading && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Brain className="h-4 w-4 animate-pulse" />
-                          <span>Aethon is thinking...</span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="border-t p-4">
-                      <form onSubmit={handleSubmit} className="flex gap-2">
-                        <Input
-                          placeholder="Ask Aethon anything about your research..."
-                          value={input}
-                          onChange={handleInputChange}
-                          className="flex-1"
-                          disabled={isLoading}
-                        />
-                        <Button type="submit" disabled={isLoading || !input.trim()}>
-                          <Send className="h-4 w-4" />
-                          <span className="sr-only">Send</span>
-                        </Button>
-                      </form>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="history" className="mt-0">
-              <Card className="border shadow-sm">
-                <CardContent className="p-6">
-                  <div className="flex flex-col items-center justify-center h-[400px] text-center">
-                    <Clock className="h-12 w-12 text-muted-foreground/60 mb-4" />
-                    <h3 className="text-lg font-medium">No conversation history yet</h3>
-                    <p className="text-sm text-muted-foreground mt-1 max-w-md">
-                      Your conversations with Aethon will appear here once you start chatting.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+    <div className="container mx-auto p-6 max-w-4xl">
+      <div className="mb-6">
+        <div className="flex items-center space-x-3 mb-2">
+          <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
+            <Sparkles className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold">Aethon AI Assistant</h1>
+            <p className="text-muted-foreground">Your intelligent research companion</p>
+          </div>
         </div>
       </div>
-    </DashboardShell>
+
+      {/* Quick Prompts */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-3">Quick Start Prompts</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {quickPrompts.map((prompt, index) => (
+            <Card
+              key={index}
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => handleQuickPrompt(prompt.prompt)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3">
+                  <prompt.icon className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="font-medium text-sm">{prompt.title}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{prompt.prompt}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Chat Interface */}
+      <Card className="h-[600px] flex flex-col">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Bot className="h-5 w-5" />
+            <span>Research Assistant Chat</span>
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="flex-1 flex flex-col p-0">
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-4">
+              {messages.map((message) => (
+                <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className={`flex space-x-3 max-w-[80%] ${message.sender === "user" ? "flex-row-reverse space-x-reverse" : ""}`}
+                  >
+                    <Avatar className="h-8 w-8">
+                      {message.sender === "user" ? (
+                        <>
+                          <AvatarImage src="/placeholder-user.jpg" />
+                          <AvatarFallback>
+                            <User className="h-4 w-4" />
+                          </AvatarFallback>
+                        </>
+                      ) : (
+                        <>
+                          <AvatarImage src="/placeholder-logo.png" />
+                          <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600">
+                            <Bot className="h-4 w-4 text-white" />
+                          </AvatarFallback>
+                        </>
+                      )}
+                    </Avatar>
+
+                    <div
+                      className={`rounded-lg p-3 ${message.sender === "user" ? "bg-blue-600 text-white" : "bg-muted"}`}
+                    >
+                      <div className="whitespace-pre-wrap text-sm">{message.content}</div>
+
+                      {message.sender === "aethon" && (
+                        <div className="flex items-center space-x-2 mt-2 pt-2 border-t border-muted-foreground/20">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyMessage(message.content)}
+                            className="h-6 px-2"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => likeMessage(message.id)}
+                            className={`h-6 px-2 ${message.liked ? "text-green-600" : ""}`}
+                          >
+                            <ThumbsUp className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => dislikeMessage(message.id)}
+                            className={`h-6 px-2 ${message.disliked ? "text-red-600" : ""}`}
+                          >
+                            <ThumbsDown className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="flex space-x-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-600">
+                        <Bot className="h-4 w-4 text-white" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="bg-muted rounded-lg p-3">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                        <div
+                          className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          <Separator />
+
+          <div className="p-4">
+            <div className="flex space-x-2">
+              <Input
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="Ask me anything about your research..."
+                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                disabled={isLoading}
+                className="flex-1"
+              />
+              <Button onClick={handleSendMessage} disabled={!inputMessage.trim() || isLoading} className="px-4">
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   )
 }

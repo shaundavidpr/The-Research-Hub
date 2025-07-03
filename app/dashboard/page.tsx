@@ -1,285 +1,325 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+"use client"
+
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  FileText,
-  FolderOpen,
-  Brain,
-  Calendar,
-  Clock,
-  BookOpen,
-  BarChart,
-  FileQuestion,
-  Plus,
-  ArrowRight,
-  Users,
-  Globe,
-  Sparkles,
-  Target,
-  TrendingUp
-} from "lucide-react"
-import { DashboardHeader } from "@/components/dashboard-header"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { DashboardShell } from "@/components/dashboard-shell"
-import { RecentActivity } from "@/components/recent-activity"
-import { UpcomingDeadlines } from "@/components/upcoming-deadlines"
-import { ResearchProgress } from "@/components/research-progress"
+import {
+  Brain,
+  Users,
+  FileText,
+  TrendingUp,
+  Plus,
+  MessageCircle,
+  Heart,
+  BookOpen,
+  Calendar,
+  Target,
+  Zap,
+} from "lucide-react"
+import Link from "next/link"
 
 export default function DashboardPage() {
+  const [stats, setStats] = useState({
+    followers: 0,
+    following: 0,
+    papers: 0,
+    citations: 0,
+    projects: 0,
+    notes: 0,
+  })
+
+  useEffect(() => {
+    // Load stats from localStorage
+    const savedStats = localStorage.getItem("userStats")
+    if (savedStats) {
+      setStats(JSON.parse(savedStats))
+    }
+  }, [])
+
+  const quickActions = [
+    {
+      title: "Chat with Aethon",
+      description: "Get AI-powered research assistance",
+      icon: <Brain className="h-5 w-5" />,
+      href: "/aethon",
+      color: "bg-purple-500",
+    },
+    {
+      title: "Create Note",
+      description: "Start a new research note",
+      icon: <FileText className="h-5 w-5" />,
+      href: "/notes/new",
+      color: "bg-blue-500",
+    },
+    {
+      title: "Join Community",
+      description: "Connect with researchers",
+      icon: <Users className="h-5 w-5" />,
+      href: "/community",
+      color: "bg-green-500",
+    },
+    {
+      title: "New Project",
+      description: "Start a research project",
+      icon: <Plus className="h-5 w-5" />,
+      href: "/projects/new",
+      color: "bg-orange-500",
+    },
+  ]
+
+  const recentActivity = [
+    {
+      type: "note",
+      title: "Literature Review Notes",
+      time: "2 hours ago",
+      icon: <FileText className="h-4 w-4" />,
+    },
+    {
+      type: "chat",
+      title: "Discussed methodology with Aethon",
+      time: "5 hours ago",
+      icon: <Brain className="h-4 w-4" />,
+    },
+    {
+      type: "community",
+      title: "New follower: Dr. Sarah Chen",
+      time: "1 day ago",
+      icon: <Users className="h-4 w-4" />,
+    },
+  ]
+
+  const trendingPapers = [
+    {
+      title: "Advances in Quantum Computing for ML",
+      author: "Dr. Sarah Chen",
+      likes: 234,
+      comments: 45,
+      field: "Computer Science",
+    },
+    {
+      title: "Climate Change Impact on Marine Life",
+      author: "Prof. Michael Rodriguez",
+      likes: 189,
+      comments: 32,
+      field: "Environmental Science",
+    },
+  ]
+
   return (
     <DashboardShell>
-      <DashboardHeader
-        heading="Research Dashboard"
-        text="Welcome back! Here's an overview of your research activities and progress."
-        actions={
-          <Button asChild>
-            <Link href="/projects">
-              <Plus className="mr-2 h-4 w-4" />
-              New Project
-            </Link>
-          </Button>
-        }
-      />
-
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Research Notes</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-muted-foreground">+3 this week</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Files Uploaded</CardTitle>
-            <FolderOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">156</div>
-            <p className="text-xs text-muted-foreground">+12 this week</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aethon Interactions</CardTitle>
-            <Brain className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">89</div>
-            <p className="text-xs text-muted-foreground">+15 this week</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Community Connections</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">47</div>
-            <p className="text-xs text-muted-foreground">+5 new followers</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
-          <CardHeader>
-            <CardTitle>Research Progress</CardTitle>
-            <CardDescription>Track your research project milestones and progress</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResearchProgress />
-          </CardContent>
-        </Card>
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Your recent research activities</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <RecentActivity />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center">
-              <FileText className="mr-2 h-5 w-5 text-primary" />
-              Smart Notes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <div className="space-y-2">
-              <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3" asChild>
-                <Link href="/notes">
-                  <BookOpen className="mr-2 h-4 w-4 text-primary" />
-                  <span>Create Research Note</span>
-                </Link>
-              </Button>
-              <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3" asChild>
-                <Link href="/personal-notes">
-                  <FileText className="mr-2 h-4 w-4 text-primary" />
-                  <span>Personal Note</span>
-                </Link>
-              </Button>
-              <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3" asChild>
-                <Link href="/notes">
-                  <Target className="mr-2 h-4 w-4 text-primary" />
-                  <span>View All Notes</span>
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-          <div className="px-6 pb-4">
-            <Button asChild className="w-full">
-              <Link href="/notes">
-                <Plus className="mr-2 h-4 w-4" />
-                New Note
-              </Link>
-            </Button>
+      <div className="space-y-8">
+        {/* Welcome Section */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Welcome back!</h1>
+            <p className="text-muted-foreground">Here's what's happening with your research today.</p>
           </div>
-        </Card>
+          <Badge variant="secondary" className="px-3 py-1">
+            <Zap className="h-4 w-4 mr-1" />
+            Pro Researcher
+          </Badge>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center">
-              <Clock className="mr-2 h-5 w-5 text-primary" />
-              Research Timeline
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <UpcomingDeadlines />
-          </CardContent>
-          <div className="px-6 pb-4">
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/calendar">
-                View Timeline
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </Card>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-blue-600">{stats.followers}</div>
+              <div className="text-sm text-muted-foreground">Followers</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-green-600">{stats.following}</div>
+              <div className="text-sm text-muted-foreground">Following</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-purple-600">{stats.papers}</div>
+              <div className="text-sm text-muted-foreground">Papers</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-orange-600">{stats.citations}</div>
+              <div className="text-sm text-muted-foreground">Citations</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-red-600">{stats.projects}</div>
+              <div className="text-sm text-muted-foreground">Projects</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-indigo-600">{stats.notes}</div>
+              <div className="text-sm text-muted-foreground">Notes</div>
+            </CardContent>
+          </Card>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center">
-              <Brain className="mr-2 h-5 w-5 text-primary" />
-              Aethon AI Assistant
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pb-2">
-            <div className="space-y-2">
-              <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3">
-                <Sparkles className="mr-2 h-4 w-4 text-primary" />
-                <span>Analyze Research Papers</span>
-              </Button>
-              <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3">
-                <BarChart className="mr-2 h-4 w-4 text-primary" />
-                <span>Generate Insights</span>
-              </Button>
-              <Button variant="outline" className="w-full justify-start text-left h-auto py-2 px-3">
-                <FileQuestion className="mr-2 h-4 w-4 text-primary" />
-                <span>Research Questions</span>
-              </Button>
-            </div>
-          </CardContent>
-          <div className="px-6 pb-4">
-            <Button asChild className="w-full">
-              <Link href="/aethon">
-                Chat with Aethon
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </Card>
-      </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Quick Actions */}
+          <div className="lg:col-span-2 space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Quick Actions
+                </CardTitle>
+                <CardDescription>Jump into your most common research tasks</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {quickActions.map((action, index) => (
+                    <Link key={index} href={action.href}>
+                      <Card className="hover:shadow-md transition-shadow cursor-pointer group">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`p-2 rounded-lg ${action.color} text-white group-hover:scale-110 transition-transform`}
+                            >
+                              {action.icon}
+                            </div>
+                            <div>
+                              <h3 className="font-semibold">{action.title}</h3>
+                              <p className="text-sm text-muted-foreground">{action.description}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
 
-      {/* Community and Tools */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Globe className="mr-2 h-5 w-5 text-primary" />
-              Research Community
-            </CardTitle>
-            <CardDescription>Connect with researchers worldwide</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Active Researchers</span>
-                <span className="font-bold">12,450</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Papers Shared Today</span>
-                <span className="font-bold">234</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">New Collaborations</span>
-                <span className="font-bold">18</span>
-              </div>
-            </div>
-            <div className="mt-4 flex gap-2">
-              <Button asChild variant="outline" className="flex-1">
+            {/* Trending Papers */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Trending in Community
+                </CardTitle>
+                <CardDescription>Popular papers from researchers you follow</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {trendingPapers.map((paper, index) => (
+                  <div
+                    key={index}
+                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
+                  >
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback>
+                        {paper.author
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium line-clamp-1">{paper.title}</h4>
+                      <p className="text-sm text-muted-foreground">{paper.author}</p>
+                      <div className="flex items-center gap-4 mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          {paper.field}
+                        </Badge>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Heart className="h-3 w-3" />
+                            {paper.likes}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MessageCircle className="h-3 w-3" />
+                            {paper.comments}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
                 <Link href="/community">
-                  <Globe className="mr-2 h-4 w-4" />
-                  Explore
+                  <Button variant="outline" className="w-full bg-transparent">
+                    View All Trending Papers
+                  </Button>
                 </Link>
-              </Button>
-              <Button asChild className="flex-1">
-                <Link href="/collaboration">
-                  <Users className="mr-2 h-4 w-4" />
-                  Collaborate
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <TrendingUp className="mr-2 h-5 w-5 text-primary" />
-              Research Tools
-            </CardTitle>
-            <CardDescription>Access your research toolkit</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-2">
-              <Button asChild variant="outline" size="sm">
-                <Link href="/files">
-                  <FolderOpen className="mr-2 h-4 w-4" />
-                  Files
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Recent Activity */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Recent Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="p-2 rounded-full bg-muted">{activity.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium line-clamp-2">{activity.title}</p>
+                      <p className="text-xs text-muted-foreground">{activity.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Research Goals */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  This Week's Goals
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Complete literature review</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Analyze survey data</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" className="rounded" />
+                  <span className="text-sm">Draft methodology section</span>
+                </div>
+                <Button variant="outline" size="sm" className="w-full mt-3 bg-transparent">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Goal
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* AI Assistant Prompt */}
+            <Card className="bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
+              <CardContent className="p-4 text-center">
+                <Brain className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                <h3 className="font-semibold mb-1">Need Research Help?</h3>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Ask Aethon AI for assistance with your research questions.
+                </p>
+                <Link href="/aethon">
+                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                    Chat with Aethon
+                  </Button>
                 </Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/citations">
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  Citations
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/analytics">
-                  <BarChart className="mr-2 h-4 w-4" />
-                  Analytics
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/publish">
-                  <FileText className="mr-2 h-4 w-4" />
-                  Publish
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </DashboardShell>
   )
