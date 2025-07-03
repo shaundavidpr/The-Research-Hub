@@ -1,61 +1,109 @@
-"use client"
-
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Brain, Users, FileText, BarChart, Zap, Star } from "lucide-react"
-import Link from "next/link"
+import {
+  Brain,
+  Users,
+  FileText,
+  BarChart3,
+  BookOpen,
+  Search,
+  Zap,
+  ArrowRight,
+  Star,
+  Globe,
+  Sparkles,
+} from "lucide-react"
 
 export default function HomePage() {
   const features = [
     {
       icon: <Brain className="h-8 w-8 text-blue-600" />,
       title: "AI Research Assistant",
-      description: "Get intelligent help with literature reviews, methodology, and data analysis from Aethon AI.",
-      href: "/aethon",
+      description: "Advanced Python-powered AI that understands research methodology and provides expert guidance",
+      badge: "Python Enhanced",
     },
     {
-      icon: <Users className="h-8 w-8 text-green-600" />,
+      icon: <BookOpen className="h-8 w-8 text-green-600" />,
+      title: "Literature Reviews",
+      description: "Systematic literature review tools with automated search strategies and citation management",
+      badge: "Smart Analysis",
+    },
+    {
+      icon: <BarChart3 className="h-8 w-8 text-purple-600" />,
+      title: "Data Analysis",
+      description: "Statistical analysis guidance with Python, R, and SPSS recommendations for your research data",
+      badge: "Statistical Power",
+    },
+    {
+      icon: <Users className="h-8 w-8 text-orange-600" />,
       title: "Research Community",
-      description: "Connect with researchers worldwide, share papers, and build your academic network.",
-      href: "/community",
+      description: "Connect with researchers worldwide, share findings, and collaborate on groundbreaking projects",
+      badge: "Social Network",
     },
     {
-      icon: <FileText className="h-8 w-8 text-purple-600" />,
-      title: "Smart Notes & Projects",
-      description: "Organize your research with intelligent note-taking and project management tools.",
-      href: "/notes",
+      icon: <FileText className="h-8 w-8 text-red-600" />,
+      title: "Academic Writing",
+      description: "AI-powered writing assistance for papers, grants, and proposals with publication guidance",
+      badge: "Writing Support",
     },
     {
-      icon: <BarChart className="h-8 w-8 text-orange-600" />,
-      title: "Research Analytics",
-      description: "Track your research progress, citations, and collaboration metrics.",
-      href: "/analytics",
+      icon: <Search className="h-8 w-8 text-teal-600" />,
+      title: "Research Discovery",
+      description: "Discover research gaps, trending topics, and collaboration opportunities in your field",
+      badge: "Gap Analysis",
     },
   ]
 
   const stats = [
-    { label: "Active Researchers", value: "10K+", icon: <Users className="h-5 w-5" /> },
-    { label: "Research Papers", value: "50K+", icon: <FileText className="h-5 w-5" /> },
-    { label: "AI Interactions", value: "100K+", icon: <Brain className="h-5 w-5" /> },
-    { label: "Citations Managed", value: "1M+", icon: <Star className="h-5 w-5" /> },
+    { label: "Active Researchers", value: "0", icon: <Users className="h-5 w-5" /> },
+    { label: "Research Papers", value: "0", icon: <FileText className="h-5 w-5" /> },
+    { label: "AI Interactions", value: "0", icon: <Brain className="h-5 w-5" /> },
+    { label: "Citations Managed", value: "0", icon: <BookOpen className="h-5 w-5" /> },
+  ]
+
+  const testimonials = [
+    {
+      name: "Dr. Sarah Chen",
+      role: "Research Scientist, MIT",
+      content:
+        "The Python-enhanced AI provides incredibly accurate research methodology guidance. It's like having a research mentor available 24/7.",
+      rating: 5,
+    },
+    {
+      name: "Prof. Michael Rodriguez",
+      role: "Professor, Stanford University",
+      content:
+        "The literature review tools saved me weeks of work. The AI understands academic context better than any other platform.",
+      rating: 5,
+    },
+    {
+      name: "Dr. Emily Watson",
+      role: "Data Scientist, Harvard",
+      content:
+        "Outstanding statistical analysis guidance. The Python backend provides more sophisticated recommendations than standard AI tools.",
+      rating: 5,
+    },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Navigation */}
-      <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      {/* Header */}
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <Brain className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Research Hub
-              </span>
+              <span className="text-xl font-bold">The Research Hub</span>
+              <Badge variant="secondary" className="ml-2">
+                <Sparkles className="h-3 w-3 mr-1" />
+                Python Enhanced
+              </Badge>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center space-x-4">
               <Link href="/login">
                 <Button variant="ghost">Sign In</Button>
               </Link>
@@ -65,55 +113,49 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </nav>
+      </header>
 
       {/* Hero Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
+      <section className="py-20 px-4">
+        <div className="container mx-auto text-center max-w-4xl">
           <div className="flex justify-center mb-6">
-            <Badge variant="secondary" className="px-4 py-2">
+            <Badge variant="outline" className="px-4 py-2">
               <Zap className="h-4 w-4 mr-2" />
-              Powered by Advanced AI
+              Now with Python-Enhanced AI Backend
             </Badge>
           </div>
-
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            The Future of{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Research Collaboration
-            </span>
+          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            The Future of Research Collaboration
           </h1>
-
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Connect with researchers worldwide, get AI-powered research assistance, and accelerate your academic journey
-            with our comprehensive research platform.
+          <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+            Connect with researchers worldwide, leverage Python-powered AI for superior research guidance, and
+            accelerate your academic journey with our comprehensive research platform.
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              >
+              <Button size="lg" className="px-8 py-3">
                 Start Your Research Journey
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link href="/community">
-              <Button size="lg" variant="outline">
-                Explore Community
+            <Link href="/aethon">
+              <Button size="lg" variant="outline" className="px-8 py-3 bg-transparent">
+                Try Aethon AI Assistant
+                <Brain className="ml-2 h-5 w-5" />
               </Button>
             </Link>
           </div>
+        </div>
+      </section>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+      {/* Stats Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <div className="text-blue-600">{stat.icon}</div>
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                </div>
+                <div className="flex justify-center mb-2 text-blue-600">{stat.icon}</div>
+                <div className="text-3xl font-bold mb-1">{stat.value}</div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>
               </div>
             ))}
@@ -122,152 +164,186 @@ export default function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-20 px-4">
+        <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything You Need for Research Success</h2>
+            <h2 className="text-3xl font-bold mb-4">Powerful Research Tools</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              From AI-powered assistance to community collaboration, we've got all your research needs covered.
+              Everything you need for successful research, powered by advanced Python AI and designed for the modern
+              researcher.
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Link key={index} href={feature.href}>
-                <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group">
-                  <CardHeader>
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-lg bg-gray-50 group-hover:bg-gray-100 transition-colors">
-                        {feature.icon}
-                      </div>
-                      <div>
-                        <CardTitle className="text-xl">{feature.title}</CardTitle>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-base leading-relaxed">{feature.description}</CardDescription>
-                  </CardContent>
-                </Card>
-              </Link>
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    {feature.icon}
+                    <Badge variant="secondary" className="text-xs">
+                      {feature.badge}
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription className="text-base leading-relaxed">{feature.description}</CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">Trusted by Researchers Worldwide</h2>
+            <p className="text-xl text-muted-foreground">See what leading researchers say about our platform</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="bg-white">
+                <CardContent className="p-6">
+                  <div className="flex mb-4">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-muted-foreground mb-4 italic">"{testimonial.content}"</p>
+                  <div>
+                    <div className="font-semibold">{testimonial.name}</div>
+                    <div className="text-sm text-muted-foreground">{testimonial.role}</div>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="max-w-4xl mx-auto text-center text-white">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Transform Your Research?</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join thousands of researchers who are already using our platform to accelerate their work.
-          </p>
-          <Link href="/signup">
-            <Button size="lg" variant="secondary" className="bg-white text-blue-600 hover:bg-gray-100">
-              Get Started for Free
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
+      <section className="py-20 px-4">
+        <div className="container mx-auto text-center">
+          <Card className="max-w-2xl mx-auto bg-gradient-to-r from-blue-50 to-purple-50 border-0">
+            <CardContent className="p-12">
+              <h2 className="text-3xl font-bold mb-4">Ready to Transform Your Research?</h2>
+              <p className="text-xl text-muted-foreground mb-8">
+                Join the next generation of researchers using AI-powered tools to accelerate discovery and
+                collaboration.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/signup">
+                  <Button size="lg" className="px-8 py-3">
+                    Create Free Account
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link href="/community">
+                  <Button size="lg" variant="outline" className="px-8 py-3 bg-transparent">
+                    Explore Community
+                    <Globe className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+      <footer className="border-t bg-muted/30 py-12">
+        <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <Brain className="h-5 w-5 text-white" />
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-purple-600 rounded flex items-center justify-center">
+                  <Brain className="h-4 w-4 text-white" />
                 </div>
-                <span className="text-xl font-bold">Research Hub</span>
+                <span className="font-bold">The Research Hub</span>
               </div>
-              <p className="text-gray-400">
-                Empowering researchers worldwide with AI-driven tools and collaborative platforms.
+              <p className="text-sm text-muted-foreground">
+                Empowering researchers with AI-enhanced tools and global collaboration opportunities.
               </p>
             </div>
-
             <div>
               <h3 className="font-semibold mb-4">Platform</h3>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <Link href="/aethon" className="hover:text-white">
+                  <Link href="/aethon" className="hover:text-foreground">
                     AI Assistant
                   </Link>
                 </li>
                 <li>
-                  <Link href="/community" className="hover:text-white">
+                  <Link href="/community" className="hover:text-foreground">
                     Community
                   </Link>
                 </li>
                 <li>
-                  <Link href="/notes" className="hover:text-white">
+                  <Link href="/projects" className="hover:text-foreground">
+                    Projects
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/notes" className="hover:text-foreground">
                     Notes
                   </Link>
                 </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-semibold mb-4">Resources</h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <Link href="/analytics" className="hover:text-white">
-                    Analytics
+                  <Link href="/help" className="hover:text-foreground">
+                    Help Center
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/api" className="hover:text-foreground">
+                    API Docs
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/blog" className="hover:text-foreground">
+                    Research Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/tutorials" className="hover:text-foreground">
+                    Tutorials
                   </Link>
                 </li>
               </ul>
             </div>
-
-            <div>
-              <h3 className="font-semibold mb-4">Resources</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Documentation
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    API
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Support
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Blog
-                  </a>
-                </li>
-              </ul>
-            </div>
-
             <div>
               <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-2 text-gray-400">
+              <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <a href="#" className="hover:text-white">
-                    About
-                  </a>
+                  <Link href="/about" className="hover:text-foreground">
+                    About Us
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white">
-                    Privacy
-                  </a>
+                  <Link href="/privacy" className="hover:text-foreground">
+                    Privacy Policy
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white">
-                    Terms
-                  </a>
+                  <Link href="/terms" className="hover:text-foreground">
+                    Terms of Service
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white">
+                  <Link href="/contact" className="hover:text-foreground">
                     Contact
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
           </div>
-
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Research Hub. All rights reserved.</p>
+          <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
+            <p>&copy; 2024 The Research Hub. All rights reserved. Powered by Python and AI.</p>
           </div>
         </div>
       </footer>
