@@ -12,7 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User, GraduationCap, Brain, Settings, Upload, ArrowRight, ArrowLeft, CheckCircle, X } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { User, GraduationCap, Brain, Settings, ArrowRight, ArrowLeft, CheckCircle, X, Camera } from "lucide-react"
 
 interface ProfileData {
   // Basic Info
@@ -21,6 +22,8 @@ interface ProfileData {
   email: string
   title: string
   institution: string
+  department: string
+  location: string
   bio: string
   avatar: string
 
@@ -95,13 +98,17 @@ const methodologies = [
 
 export default function CreateProfilePage() {
   const router = useRouter()
+  const { toast } = useToast()
   const [currentStep, setCurrentStep] = useState(1)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [profileData, setProfileData] = useState<ProfileData>({
     firstName: "",
     lastName: "",
     email: "",
     title: "",
     institution: "",
+    department: "",
+    location: "",
     bio: "",
     avatar: "",
     degree: "",
@@ -163,19 +170,67 @@ export default function CreateProfilePage() {
     }
   }
 
-  const handleComplete = () => {
-    // Save profile data to localStorage
-    localStorage.setItem("userProfile", JSON.stringify(profileData))
+  const isStepValid = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          profileData.firstName &&
+          profileData.lastName &&
+          profileData.email &&
+          profileData.title &&
+          profileData.institution
+        )
+      case 2:
+        return profileData.degree && profileData.researchField
+      case 3:
+        return profileData.topics.length > 0
+      case 4:
+        return true
+      default:
+        return false
+    }
+  }
 
-    // Update user stats
-    const currentStats = JSON.parse(
-      localStorage.getItem("userStats") ||
-        '{"followers": 0, "following": 0, "papers": 0, "citations": 0, "projects": 0, "notes": 0}',
-    )
-    localStorage.setItem("userStats", JSON.stringify(currentStats))
+  const handleComplete = async () => {
+    setIsSubmitting(true)
 
-    // Redirect to dashboard
-    router.push("/dashboard")
+    try {
+      // Save profile data to localStorage
+      const completeProfile = {
+        ...profileData,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        followers: 0,
+        following: 0,
+        papers: 0,
+        citations: 0,
+        projects: 0,
+        notes: 0,
+      }
+
+      localStorage.setItem("userProfile", JSON.stringify(completeProfile))
+      localStorage.setItem("isProfileComplete", "true")
+
+      toast({
+        title: "Profile created successfully!",
+        description: "Welcome to The Research Hub. Your profile is now live.",
+      })
+
+      // Redirect to dashboard
+      router.push("/dashboard")
+    } catch (error) {
+      toast({
+        title: "Error creating profile",
+        description: "Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const getInitials = () => {
+    return `${profileData.firstName[0] || ""}${profileData.lastName[0] || ""}`.toUpperCase()
   }
 
   const renderStep = () => {
@@ -193,70 +248,92 @@ export default function CreateProfilePage() {
               <div className="relative">
                 <Avatar className="h-24 w-24">
                   <AvatarImage src={profileData.avatar || "/placeholder.svg"} />
-                  <AvatarFallback className="text-2xl">
-                    {profileData.firstName[0]}
-                    {profileData.lastName[0]}
-                  </AvatarFallback>
+                  <AvatarFallback className="text-2xl">{getInitials()}</AvatarFallback>
                 </Avatar>
                 <Button
                   size="sm"
                   variant="outline"
                   className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0 bg-transparent"
                 >
-                  <Upload className="h-4 w-4" />
+                  <Camera className="h-4 w-4" />
                 </Button>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="firstName">First Name</Label>
+                <Label htmlFor="firstName">First Name *</Label>
                 <Input
                   id="firstName"
                   value={profileData.firstName}
                   onChange={(e) => updateProfileData("firstName", e.target.value)}
-                  placeholder="Enter your first name"
+                  placeholder="Jane"
+                  required
                 />
               </div>
               <div>
-                <Label htmlFor="lastName">Last Name</Label>
+                <Label htmlFor="lastName">Last Name *</Label>
                 <Input
                   id="lastName"
                   value={profileData.lastName}
                   onChange={(e) => updateProfileData("lastName", e.target.value)}
-                  placeholder="Enter your last name"
+                  placeholder="Smith"
+                  required
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email Address *</Label>
               <Input
                 id="email"
                 type="email"
                 value={profileData.email}
                 onChange={(e) => updateProfileData("email", e.target.value)}
-                placeholder="your.email@university.edu"
+                placeholder="jane.smith@university.edu"
+                required
               />
             </div>
 
             <div>
-              <Label htmlFor="title">Professional Title</Label>
+              <Label htmlFor="title">Professional Title *</Label>
               <Input
                 id="title"
                 value={profileData.title}
                 onChange={(e) => updateProfileData("title", e.target.value)}
-                placeholder="e.g., PhD Student, Research Scientist, Professor"
+                placeholder="PhD Student, Research Scientist, Professor"
+                required
               />
             </div>
 
             <div>
-              <Label htmlFor="institution">Institution</Label>
+              <Label htmlFor="institution">Institution *</Label>
               <Input
                 id="institution"
                 value={profileData.institution}
                 onChange={(e) => updateProfileData("institution", e.target.value)}
-                placeholder="Your university or research institution"
+                placeholder="Harvard University"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="department">Department</Label>
+              <Input
+                id="department"
+                value={profileData.department}
+                onChange={(e) => updateProfileData("department", e.target.value)}
+                placeholder="Computer Science Department"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                value={profileData.location}
+                onChange={(e) => updateProfileData("location", e.target.value)}
+                placeholder="Cambridge, MA, USA"
               />
             </div>
 
@@ -283,7 +360,7 @@ export default function CreateProfilePage() {
             </div>
 
             <div>
-              <Label htmlFor="degree">Current Degree/Position</Label>
+              <Label htmlFor="degree">Current Degree/Position *</Label>
               <Select value={profileData.degree} onValueChange={(value) => updateProfileData("degree", value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select your current degree or position" />
@@ -304,7 +381,7 @@ export default function CreateProfilePage() {
             </div>
 
             <div>
-              <Label htmlFor="researchField">Primary Research Field</Label>
+              <Label htmlFor="researchField">Primary Research Field *</Label>
               <Select
                 value={profileData.researchField}
                 onValueChange={(value) => updateProfileData("researchField", value)}
@@ -363,7 +440,7 @@ export default function CreateProfilePage() {
             </div>
 
             <div>
-              <Label>Research Topics</Label>
+              <Label>Research Topics *</Label>
               <p className="text-sm text-muted-foreground mb-3">Select topics that match your research interests</p>
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {commonTopics.map((topic) => (
@@ -378,14 +455,16 @@ export default function CreateProfilePage() {
                   </Button>
                 ))}
               </div>
-              <div className="flex flex-wrap gap-2">
-                {profileData.topics.map((topic) => (
-                  <Badge key={topic} variant="secondary" className="flex items-center gap-1">
-                    {topic}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeTopic(topic)} />
-                  </Badge>
-                ))}
-              </div>
+              {profileData.topics.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {profileData.topics.map((topic) => (
+                    <Badge key={topic} variant="secondary" className="flex items-center gap-1">
+                      {topic}
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => removeTopic(topic)} />
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
@@ -408,14 +487,16 @@ export default function CreateProfilePage() {
                   </Button>
                 ))}
               </div>
-              <div className="flex flex-wrap gap-2">
-                {profileData.methodologies.map((methodology) => (
-                  <Badge key={methodology} variant="secondary" className="flex items-center gap-1">
-                    {methodology}
-                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeMethodology(methodology)} />
-                  </Badge>
-                ))}
-              </div>
+              {profileData.methodologies.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {profileData.methodologies.map((methodology) => (
+                    <Badge key={methodology} variant="secondary" className="flex items-center gap-1">
+                      {methodology}
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => removeMethodology(methodology)} />
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
@@ -537,14 +618,27 @@ export default function CreateProfilePage() {
               </Button>
 
               {currentStep < totalSteps ? (
-                <Button onClick={handleNext}>
+                <Button onClick={handleNext} disabled={!isStepValid()}>
                   Next
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               ) : (
-                <Button onClick={handleComplete} className="bg-green-600 hover:bg-green-700">
-                  Complete Profile
-                  <CheckCircle className="h-4 w-4 ml-2" />
+                <Button
+                  onClick={handleComplete}
+                  disabled={!isStepValid() || isSubmitting}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Creating Profile...
+                    </>
+                  ) : (
+                    <>
+                      Complete Profile
+                      <CheckCircle className="h-4 w-4 ml-2" />
+                    </>
+                  )}
                 </Button>
               )}
             </div>
