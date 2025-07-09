@@ -16,12 +16,7 @@ The Research Hub is an all-in-one AI-powered assistant for students, researchers
 🔗 Visit: [https://v0-the-research-hub.vercel.app](https://v0-the-research-hub.vercel.app)
 
 ## 📁 Tech Stack
-
-- **Frontend**: Next.js (React), Tailwind CSS
-- **Backend**: Node.js API Routes (Serverless)
-- **AI Integration**: OpenAI / Hugging Face APIs (Chat, Text Generation)
-- **Deployment**: Vercel
-
+will be adding soon
 ## 🧩 Folder Structure
 
 
