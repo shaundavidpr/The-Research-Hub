@@ -1,13 +1,18 @@
 import os
 import asyncio
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import openai
+from openai import OpenAI
 from typing import Optional, List
 import json
 import logging
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -24,8 +29,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure OpenAI
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Configure OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class ChatMessage(BaseModel):
     message: str
@@ -84,15 +89,15 @@ class ResearchAssistant:
             full_message = message + file_context if file_context else message
             messages.append({"role": "user", "content": full_message})
             
-            # Generate response using OpenAI
-            response = openai.ChatCompletion.create(
+            # Generate response using OpenAI (updated API)
+            response = client.chat.completions.create(
                 model="gpt-4",
                 messages=messages,
                 max_tokens=1000,
                 temperature=0.7
             )
             
-            ai_response = response.choices[0].message.content
+            ai_response = response.choices[0].message.content or "I apologize, but I couldn't generate a response."
             
             # Generate contextual suggestions
             suggestions = self._generate_suggestions(message, ai_response, attached_files)
@@ -317,4 +322,15 @@ async def get_research_topics():
     }
 
 if __name__ == "__main__":
+    # Check if OpenAI API key is configured
+    if not os.getenv("OPENAI_API_KEY"):
+        logger.error("❌ OPENAI_API_KEY not found in environment variables")
+        logger.error("Please set your OpenAI API key in the .env file")
+        exit(1)
+    
+    logger.info("🚀 Starting Research Assistant API server...")
+    logger.info("📖 Server will be available at: http://localhost:8000")
+    logger.info("🔍 Health check: http://localhost:8000/health")
+    logger.info("📚 API docs: http://localhost:8000/docs")
+    
     uvicorn.run(app, host="0.0.0.0", port=8000)
