@@ -1,18 +1,13 @@
 import os
 import asyncio
-import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from openai import OpenAI
+import openai
 from typing import Optional, List
 import json
 import logging
 from datetime import datetime
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -29,20 +24,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Configure OpenAI
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 class ChatMessage(BaseModel):
     message: str
     conversation_history: Optional[List[dict]] = []
-    attached_files: Optional[List[dict]] = []
 
 class ChatResponse(BaseModel):
     response: str
     suggestions: List[str]
     action_items: List[dict]
     timestamp: str
-    file_analysis: Optional[dict] = None
 
 class ResearchAssistant:
     def __init__(self):
@@ -61,136 +54,47 @@ class ResearchAssistant:
         
         Always provide actionable, evidence-based advice with specific recommendations.
         Include relevant academic resources and methodological frameworks when appropriate.
-        
-        When files are attached, analyze them thoroughly and provide:
-        - Content summary and key insights
-        - Methodological observations
-        - Suggestions for further analysis
-        - Integration with research workflow
         """
     
-    def generate_response(self, message: str, history: List[dict] = None, attached_files: List[dict] = None) -> ChatResponse:
+    def generate_response(self, message: str, history: List[dict] = None) -> ChatResponse:
         try:
-            # Process attached files first
-            file_analysis = None
-            file_context = ""
-            
-            if attached_files:
-                file_analysis = self._analyze_attached_files(attached_files)
-                file_context = f"\n\nAttached Files Analysis:\n{file_analysis['summary']}"
-            
             # Prepare conversation context
             messages = [{"role": "system", "content": self.system_prompt}]
             
             if history:
                 messages.extend(history[-10:])  # Keep last 10 messages for context
             
-            # Include file context in the message
-            full_message = message + file_context if file_context else message
-            messages.append({"role": "user", "content": full_message})
+            messages.append({"role": "user", "content": message})
             
-            # Generate response using OpenAI (updated API)
-            response = client.chat.completions.create(
+            # Generate response using OpenAI
+            response = openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=messages,
                 max_tokens=1000,
                 temperature=0.7
             )
             
-            ai_response = response.choices[0].message.content or "I apologize, but I couldn't generate a response."
+            ai_response = response.choices[0].message.content
             
             # Generate contextual suggestions
-            suggestions = self._generate_suggestions(message, ai_response, attached_files)
+            suggestions = self._generate_suggestions(message, ai_response)
             
             # Generate action items
-            action_items = self._generate_action_items(message, ai_response, attached_files)
+            action_items = self._generate_action_items(message, ai_response)
             
             return ChatResponse(
                 response=ai_response,
                 suggestions=suggestions,
                 action_items=action_items,
-                timestamp=datetime.now().isoformat(),
-                file_analysis=file_analysis
+                timestamp=datetime.now().isoformat()
             )
             
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"AI generation failed: {str(e)}")
     
-    def _analyze_attached_files(self, attached_files: List[dict]) -> dict:
-        """Analyze attached files and provide insights"""
-        analysis = {
-            "summary": "",
-            "files": [],
-            "key_insights": [],
-            "recommendations": []
-        }
-        
-        for file_info in attached_files:
-            file_analysis = {
-                "name": file_info.get("name", "Unknown file"),
-                "type": file_info.get("type", "unknown"),
-                "insights": []
-            }
-            
-            # Analyze based on file type
-            if "pdf" in file_info.get("type", "").lower():
-                file_analysis["insights"] = [
-                    "Academic paper or research document detected",
-                    "Contains structured research content",
-                    "Suitable for literature review analysis",
-                    "May contain citations and references"
-                ]
-            elif "text" in file_info.get("type", "").lower():
-                file_analysis["insights"] = [
-                    "Text document with research notes",
-                    "Contains unstructured research content",
-                    "Good for content analysis and summarization"
-                ]
-            elif "csv" in file_info.get("type", "").lower() or "excel" in file_info.get("type", "").lower():
-                file_analysis["insights"] = [
-                    "Data file detected",
-                    "Contains structured research data",
-                    "Suitable for statistical analysis",
-                    "May require data cleaning and preprocessing"
-                ]
-            
-            analysis["files"].append(file_analysis)
-        
-        # Generate overall summary
-        file_count = len(attached_files)
-        analysis["summary"] = f"Analyzed {file_count} file{'s' if file_count > 1 else ''}. "
-        
-        if any("pdf" in f.get("type", "").lower() for f in attached_files):
-            analysis["summary"] += "PDF documents detected - ready for literature analysis. "
-        if any("csv" in f.get("type", "").lower() or "excel" in f.get("type", "").lower() for f in attached_files):
-            analysis["summary"] += "Data files detected - ready for statistical analysis. "
-        
-        analysis["key_insights"] = [
-            "Files are ready for AI-powered analysis",
-            "Content can be integrated into research workflow",
-            "Suitable for citation extraction and summarization"
-        ]
-        
-        analysis["recommendations"] = [
-            "Extract key findings from uploaded documents",
-            "Generate summaries for literature review",
-            "Identify research gaps and opportunities",
-            "Create structured notes from file content"
-        ]
-        
-        return analysis
-    
-    def _generate_suggestions(self, user_message: str, ai_response: str, attached_files: List[dict] = None) -> List[str]:
+    def _generate_suggestions(self, user_message: str, ai_response: str) -> List[str]:
         """Generate contextual follow-up suggestions"""
         suggestions = []
-        
-        # File-specific suggestions
-        if attached_files:
-            suggestions.extend([
-                "Summarize key findings from uploaded files",
-                "Extract citations and references",
-                "Generate research notes from file content"
-            ])
         
         # Research methodology suggestions
         if any(keyword in user_message.lower() for keyword in ["methodology", "method", "approach"]):
@@ -226,22 +130,9 @@ class ResearchAssistant:
         
         return suggestions[:3]  # Return top 3 suggestions
     
-    def _generate_action_items(self, user_message: str, ai_response: str, attached_files: List[dict] = None) -> List[dict]:
+    def _generate_action_items(self, user_message: str, ai_response: str) -> List[dict]:
         """Generate specific action items based on the conversation"""
         action_items = []
-        
-        # File processing actions
-        if attached_files:
-            action_items.append({
-                "task": f"Process and analyze {len(attached_files)} uploaded file{'s' if len(attached_files) > 1 else ''}",
-                "priority": "high",
-                "estimated_time": "5-10 minutes"
-            })
-            action_items.append({
-                "task": "Create structured notes from file analysis",
-                "priority": "medium",
-                "estimated_time": "10-15 minutes"
-            })
         
         # Research planning actions
         if any(keyword in user_message.lower() for keyword in ["start", "begin", "plan"]):
@@ -293,8 +184,7 @@ async def chat_endpoint(chat_message: ChatMessage):
     try:
         response = research_assistant.generate_response(
             chat_message.message, 
-            chat_message.conversation_history,
-            chat_message.attached_files
+            chat_message.conversation_history
         )
         return response
     except Exception as e:
@@ -322,15 +212,4 @@ async def get_research_topics():
     }
 
 if __name__ == "__main__":
-    # Check if OpenAI API key is configured
-    if not os.getenv("OPENAI_API_KEY"):
-        logger.error("❌ OPENAI_API_KEY not found in environment variables")
-        logger.error("Please set your OpenAI API key in the .env file")
-        exit(1)
-    
-    logger.info("🚀 Starting Research Assistant API server...")
-    logger.info("📖 Server will be available at: http://localhost:8000")
-    logger.info("🔍 Health check: http://localhost:8000/health")
-    logger.info("📚 API docs: http://localhost:8000/docs")
-    
     uvicorn.run(app, host="0.0.0.0", port=8000)

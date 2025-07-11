@@ -7,17 +7,14 @@ import {
   Brain,
   Users,
   FileText,
-  BookOpen,
-  Zap,
+  BarChart3,
   Shield,
-  Globe,
   Star,
   ArrowRight,
   Sparkles,
-  Target,
+  Database,
   MessageSquare,
-  Calendar,
-  BarChart3,
+  Search,
 } from "lucide-react"
 
 export default function HomePage() {
@@ -31,118 +28,105 @@ export default function HomePage() {
               <Brain className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold">The Research Hub</span>
+            <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800 border-green-200">
+              <Sparkles className="w-3 h-3 mr-1" />
+              Python Enhanced
+            </Badge>
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="/features" className="text-sm font-medium hover:text-primary transition-colors">
+            <Link href="#features" className="text-sm font-medium hover:text-primary transition-colors">
               Features
+            </Link>
+            <Link href="#testimonials" className="text-sm font-medium hover:text-primary transition-colors">
+              Testimonials
+            </Link>
+            <Link href="/community" className="text-sm font-medium hover:text-primary transition-colors">
+              Community
             </Link>
             <Link href="/pricing" className="text-sm font-medium hover:text-primary transition-colors">
               Pricing
             </Link>
-            <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">
-              About
-            </Link>
-            <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">
-              Contact
-            </Link>
           </nav>
 
           <div className="flex items-center gap-3">
-            <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
-              <Sparkles className="h-3 w-3 mr-1" />
-              Python Enhanced
-            </Badge>
-            <Link href="/login">
-              <Button variant="ghost" size="sm">
-                Sign In
-              </Button>
-            </Link>
-            <Link href="/signup">
-              <Button size="sm">Get Started</Button>
-            </Link>
+            <Button variant="ghost" asChild>
+              <Link href="/login">Sign In</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/signup">Get Started</Link>
+            </Button>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
       <section className="py-20 px-4">
-        <div className="container mx-auto text-center">
+        <div className="container max-w-6xl mx-auto text-center">
           <div className="flex justify-center mb-6">
-            <Badge variant="outline" className="px-4 py-2">
-              <Zap className="h-4 w-4 mr-2" />
-              AI-Powered Research Platform
+            <Badge variant="outline" className="px-4 py-2 bg-blue-50 text-blue-700 border-blue-200">
+              <Database className="w-4 h-4 mr-2" />
+              Now with Neon Database Integration
             </Badge>
           </div>
 
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Accelerate Your{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Research Journey
+            The Future of{" "}
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 bg-clip-text text-transparent">
+              Research Collaboration
             </span>
           </h1>
 
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Connect with researchers worldwide, organize your work with AI-powered tools, and collaborate on
-            groundbreaking discoveries. The future of research is here.
+            Connect with researchers worldwide, leverage AI-powered insights, and accelerate your research with our
+            comprehensive platform designed for the modern academic community.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/signup">
-              <Button size="lg" className="px-8">
-                Start Researching
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-            <Link href="/demo">
-              <Button variant="outline" size="lg" className="px-8 bg-transparent">
+            <Button size="lg" className="text-lg px-8" asChild>
+              <Link href="/signup">
+                Start Your Research Journey
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="text-lg px-8 bg-transparent" asChild>
+              <Link href="/demo">
                 Watch Demo
-              </Button>
-            </Link>
+                <Brain className="ml-2 h-5 w-5" />
+              </Link>
+            </Button>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
             <div className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <Users className="h-5 w-5 text-blue-600 mr-2" />
-                <span className="text-2xl font-bold">0</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Active Researchers</p>
+              <div className="text-3xl font-bold text-primary mb-2">0</div>
+              <div className="text-sm text-muted-foreground">Active Researchers</div>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <FileText className="h-5 w-5 text-green-600 mr-2" />
-                <span className="text-2xl font-bold">0</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Papers Published</p>
+              <div className="text-3xl font-bold text-primary mb-2">0</div>
+              <div className="text-sm text-muted-foreground">Research Papers</div>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <Target className="h-5 w-5 text-purple-600 mr-2" />
-                <span className="text-2xl font-bold">0</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Projects Completed</p>
+              <div className="text-3xl font-bold text-primary mb-2">0</div>
+              <div className="text-sm text-muted-foreground">Collaborations</div>
             </div>
             <div className="text-center">
-              <div className="flex items-center justify-center mb-2">
-                <Globe className="h-5 w-5 text-orange-600 mr-2" />
-                <span className="text-2xl font-bold">0</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Countries</p>
+              <div className="text-3xl font-bold text-primary mb-2">0</div>
+              <div className="text-sm text-muted-foreground">Citations Generated</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-slate-50">
-        <div className="container mx-auto">
+      <section id="features" className="py-20 px-4 bg-slate-50/50">
+        <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything You Need for Research</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything You Need for Research Excellence</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Powerful tools designed by researchers, for researchers. Streamline your workflow and focus on what
-              matters most.
+              Our comprehensive platform combines AI-powered tools with collaborative features to streamline your
+              research workflow.
             </p>
           </div>
 
@@ -155,12 +139,11 @@ export default function HomePage() {
                 <CardTitle className="flex items-center gap-2">
                   AI Research Assistant
                   <Badge variant="secondary" className="text-xs">
-                    Python Enhanced
+                    Python Powered
                   </Badge>
                 </CardTitle>
                 <CardDescription>
-                  Get intelligent suggestions, automated literature reviews, and research insights powered by advanced
-                  AI.
+                  Get intelligent insights, literature reviews, and research suggestions powered by advanced AI.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -172,7 +155,7 @@ export default function HomePage() {
                 </div>
                 <CardTitle>Global Collaboration</CardTitle>
                 <CardDescription>
-                  Connect with researchers worldwide, share findings, and collaborate on interdisciplinary projects.
+                  Connect with researchers worldwide, share findings, and collaborate on groundbreaking projects.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -182,9 +165,9 @@ export default function HomePage() {
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
                   <FileText className="h-6 w-6 text-purple-600" />
                 </div>
-                <CardTitle>Smart Note Taking</CardTitle>
+                <CardTitle>Smart Note Management</CardTitle>
                 <CardDescription>
-                  Organize your research with AI-powered note-taking, automatic tagging, and intelligent search.
+                  Organize your research with AI-enhanced note-taking, automatic tagging, and cross-referencing.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -192,19 +175,7 @@ export default function HomePage() {
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader>
                 <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                  <BookOpen className="h-6 w-6 text-orange-600" />
-                </div>
-                <CardTitle>Citation Management</CardTitle>
-                <CardDescription>
-                  Automatically format citations, manage references, and ensure accuracy across all your publications.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader>
-                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                  <BarChart3 className="h-6 w-6 text-red-600" />
+                  <BarChart3 className="h-6 w-6 text-orange-600" />
                 </div>
                 <CardTitle>Research Analytics</CardTitle>
                 <CardDescription>
@@ -215,8 +186,20 @@ export default function HomePage() {
 
             <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader>
-                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-indigo-600" />
+                <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-4">
+                  <Search className="h-6 w-6 text-teal-600" />
+                </div>
+                <CardTitle>Citation Management</CardTitle>
+                <CardDescription>
+                  Automatically generate citations, manage references, and ensure proper academic formatting.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                  <Shield className="h-6 w-6 text-red-600" />
                 </div>
                 <CardTitle>Secure & Private</CardTitle>
                 <CardDescription>
@@ -229,33 +212,35 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 px-4">
-        <div className="container mx-auto">
+      <section id="testimonials" className="py-20 px-4">
+        <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Trusted by Researchers Worldwide</h2>
-            <p className="text-xl text-muted-foreground">See what leading researchers are saying about our platform</p>
+            <p className="text-xl text-muted-foreground">
+              See what leading academics are saying about The Research Hub
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+                <div className="flex mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  "The AI research assistant has revolutionized how I approach literature reviews. What used to take
-                  weeks now takes days."
+                  "The Research Hub has revolutionized how I collaborate with international colleagues. The AI assistant
+                  is incredibly helpful for literature reviews."
                 </p>
                 <div className="flex items-center gap-3">
                   <Avatar>
-                    <AvatarImage src="/placeholder.svg" />
-                    <AvatarFallback>DR</AvatarFallback>
+                    <AvatarImage src="/placeholder-user.jpg" />
+                    <AvatarFallback>DS</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold">Dr. Sarah Chen</p>
-                    <p className="text-sm text-muted-foreground">Stanford University</p>
+                    <div className="font-semibold">Dr. Sarah Chen</div>
+                    <div className="text-sm text-muted-foreground">MIT, Computer Science</div>
                   </div>
                 </div>
               </CardContent>
@@ -263,23 +248,23 @@ export default function HomePage() {
 
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+                <div className="flex mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  "The collaboration features have enabled me to work with researchers across three continents
-                  seamlessly."
+                  "The citation management and note organization features have saved me countless hours. This platform
+                  is essential for modern research."
                 </p>
                 <div className="flex items-center gap-3">
                   <Avatar>
-                    <AvatarImage src="/placeholder.svg" />
-                    <AvatarFallback>MP</AvatarFallback>
+                    <AvatarImage src="/placeholder-user.jpg" />
+                    <AvatarFallback>MJ</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold">Prof. Michael Park</p>
-                    <p className="text-sm text-muted-foreground">MIT</p>
+                    <div className="font-semibold">Prof. Michael Johnson</div>
+                    <div className="text-sm text-muted-foreground">Oxford, Physics</div>
                   </div>
                 </div>
               </CardContent>
@@ -287,23 +272,23 @@ export default function HomePage() {
 
             <Card className="border-0 shadow-lg">
               <CardContent className="p-6">
-                <div className="flex items-center mb-4">
+                <div className="flex mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  "Smart note-taking and citation management have made my research process incredibly efficient and
-                  organized."
+                  "Finding collaborators and staying updated with the latest research in my field has never been easier.
+                  Highly recommended!"
                 </p>
                 <div className="flex items-center gap-3">
                   <Avatar>
-                    <AvatarImage src="/placeholder.svg" />
-                    <AvatarFallback>EJ</AvatarFallback>
+                    <AvatarImage src="/placeholder-user.jpg" />
+                    <AvatarFallback>ER</AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-semibold">Dr. Emily Johnson</p>
-                    <p className="text-sm text-muted-foreground">Oxford University</p>
+                    <div className="font-semibold">Dr. Elena Rodriguez</div>
+                    <div className="text-sm text-muted-foreground">Stanford, Biology</div>
                   </div>
                 </div>
               </CardContent>
@@ -313,30 +298,33 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-slate-50">
-        <div className="container mx-auto">
-          <Card className="bg-gradient-to-r from-blue-600 to-purple-600 border-0 text-white">
-            <CardContent className="p-12 text-center">
+      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600">
+        <div className="container max-w-4xl mx-auto text-center">
+          <Card className="border-0 bg-white/10 backdrop-blur-sm text-white">
+            <CardContent className="p-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Transform Your Research?</h2>
-              <p className="text-xl mb-8 text-blue-100">
-                Join thousands of researchers who are already accelerating their discoveries with our platform.
+              <p className="text-xl mb-8 text-white/90">
+                Join thousands of researchers who are already using The Research Hub to accelerate their discoveries and
+                expand their academic network.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/signup">
-                  <Button size="lg" variant="secondary" className="px-8">
-                    Get Started Free
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="/contact">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="px-8 border-white text-white hover:bg-white hover:text-blue-600 bg-transparent"
-                  >
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-white/90" asChild>
+                  <Link href="/signup">
+                    Start Free Trial
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-white text-white hover:bg-white/10 bg-transparent"
+                  asChild
+                >
+                  <Link href="/contact">
                     Contact Sales
-                  </Button>
-                </Link>
+                    <MessageSquare className="ml-2 h-5 w-5" />
+                  </Link>
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -345,33 +333,33 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="bg-slate-900 text-white py-16 px-4">
-        <div className="container mx-auto">
+        <div className="container max-w-6xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <div className="flex items-center gap-2 mb-4">
+              <Link href="/" className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                   <Brain className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-xl font-bold">The Research Hub</span>
-              </div>
+              </Link>
               <p className="text-slate-400 mb-4">
-                Empowering researchers worldwide with AI-powered tools and global collaboration.
+                Empowering researchers worldwide with AI-driven tools and collaborative platforms.
               </p>
               <div className="flex gap-4">
-                <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
-                  <MessageSquare className="h-4 w-4" />
+                <Button size="sm" variant="ghost" className="text-slate-400 hover:text-white">
+                  Twitter
                 </Button>
-                <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
-                  <Globe className="h-4 w-4" />
+                <Button size="sm" variant="ghost" className="text-slate-400 hover:text-white">
+                  LinkedIn
                 </Button>
-                <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
-                  <Calendar className="h-4 w-4" />
+                <Button size="sm" variant="ghost" className="text-slate-400 hover:text-white">
+                  GitHub
                 </Button>
               </div>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Product</h3>
+              <h3 className="font-semibold mb-4">Platform</h3>
               <ul className="space-y-2 text-slate-400">
                 <li>
                   <Link href="/features" className="hover:text-white transition-colors">
@@ -410,13 +398,13 @@ export default function HomePage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/help" className="hover:text-white transition-colors">
-                    Help Center
+                  <Link href="/community" className="hover:text-white transition-colors">
+                    Community
                   </Link>
                 </li>
                 <li>
-                  <Link href="/community" className="hover:text-white transition-colors">
-                    Community
+                  <Link href="/support" className="hover:text-white transition-colors">
+                    Support
                   </Link>
                 </li>
               </ul>
@@ -436,32 +424,21 @@ export default function HomePage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/contact" className="hover:text-white transition-colors">
-                    Contact
+                  <Link href="/privacy" className="hover:text-white transition-colors">
+                    Privacy
                   </Link>
                 </li>
                 <li>
-                  <Link href="/privacy" className="hover:text-white transition-colors">
-                    Privacy
+                  <Link href="/terms" className="hover:text-white transition-colors">
+                    Terms
                   </Link>
                 </li>
               </ul>
             </div>
           </div>
 
-          <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-slate-400">© 2024 The Research Hub. All rights reserved.</p>
-            <div className="flex gap-6 mt-4 md:mt-0">
-              <Link href="/terms" className="text-slate-400 hover:text-white transition-colors">
-                Terms
-              </Link>
-              <Link href="/privacy" className="text-slate-400 hover:text-white transition-colors">
-                Privacy
-              </Link>
-              <Link href="/cookies" className="text-slate-400 hover:text-white transition-colors">
-                Cookies
-              </Link>
-            </div>
+          <div className="border-t border-slate-800 mt-12 pt-8 text-center text-slate-400">
+            <p>&copy; 2024 The Research Hub. All rights reserved.</p>
           </div>
         </div>
       </footer>

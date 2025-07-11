@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -10,8 +10,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Brain, Mail, Lock, User, AlertCircle, CheckCircle } from "lucide-react"
+import { Brain, Mail, Lock, User, AlertCircle, CheckCircle, Loader2 } from "lucide-react"
+
+declare global {
+  interface Window {
+    google: any
+  }
+}
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -25,6 +32,71 @@ export default function SignUpPage() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    // Load Google Sign-In script
+    const script = document.createElement("script")
+    script.src = "https://accounts.google.com/gsi/client"
+    script.async = true
+    script.defer = true
+    document.body.appendChild(script)
+
+    script.onload = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+          callback: handleGoogleSignUp,
+          auto_select: false,
+          cancel_on_tap_outside: false,
+        })
+
+        // Render Google Sign-Up button
+        window.google.accounts.id.renderButton(document.getElementById("google-signup-button"), {
+          theme: "outline",
+          size: "large",
+          width: "100%",
+          text: "signup_with",
+          shape: "rectangular",
+        })
+      }
+    }
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script)
+      }
+    }
+  }, [])
+
+  const handleGoogleSignUp = async (response: any) => {
+    try {
+      setIsLoading(true)
+
+      const result = await fetch("/api/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ credential: response.credential }),
+      })
+
+      const data = await result.json()
+
+      if (result.ok) {
+        // Store user data
+        localStorage.setItem("currentUser", JSON.stringify(data.user))
+
+        // Always redirect to profile creation for Google sign-up
+        router.push("/profile/create")
+      } else {
+        setErrors({ submit: data.error || "Google sign-up failed" })
+      }
+    } catch (error) {
+      setErrors({ submit: "Something went wrong. Please try again." })
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -67,22 +139,31 @@ export default function SignUpPage() {
     setIsLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Create user account via API
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          subscribeNewsletter: formData.subscribeNewsletter,
+        }),
+      })
 
-      // Store user data in localStorage (in a real app, this would be handled by your backend)
-      const userData = {
-        id: Date.now().toString(),
-        name: formData.name,
-        email: formData.email,
-        createdAt: new Date().toISOString(),
-        subscribeNewsletter: formData.subscribeNewsletter,
+      const data = await response.json()
+
+      if (response.ok) {
+        // Store user data
+        localStorage.setItem("currentUser", JSON.stringify(data.user))
+
+        // Redirect to profile creation
+        router.push("/profile/create")
+      } else {
+        setErrors({ submit: data.error || "Failed to create account" })
       }
-
-      localStorage.setItem("currentUser", JSON.stringify(userData))
-
-      // Redirect to profile creation instead of dashboard
-      router.push("/profile/create")
     } catch (error) {
       setErrors({ submit: "Something went wrong. Please try again." })
     } finally {
@@ -120,7 +201,22 @@ export default function SignUpPage() {
               Create your account to access AI-powered research tools and connect with researchers worldwide.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
+            {/* Google Sign-Up */}
+            <div className="space-y-4">
+              <div id="google-signup-button" className="w-full"></div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator className="w-full" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or continue with email</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Email/Password Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {errors.submit && (
                 <Alert variant="destructive">
@@ -228,7 +324,7 @@ export default function SignUpPage() {
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating Account...
                   </>
                 ) : (
@@ -240,7 +336,7 @@ export default function SignUpPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 Already have an account?{" "}
                 <Link href="/login" className="text-primary hover:underline font-medium">

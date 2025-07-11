@@ -26,13 +26,8 @@ import {
   FileText,
   BarChart3,
   PenTool,
-  Paperclip,
-  FileImage,
-  File,
-  Brain,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { FileAttachmentHandler } from "@/components/file-attachment-handler"
 
 interface Message {
   id: string
@@ -41,22 +36,6 @@ interface Message {
   timestamp: string
   suggestions?: string[]
   action_items?: ActionItem[]
-  attachedFiles?: AttachedFile[]
-}
-
-interface AttachedFile {
-  id: string
-  name: string
-  type: string
-  size: number
-  url?: string
-  content?: string
-  status: 'uploading' | 'ready' | 'analyzing' | 'analyzed' | 'error'
-  analysis?: {
-    summary: string
-    keyPoints: string[]
-    suggestions: string[]
-  }
 }
 
 interface ActionItem {
@@ -104,8 +83,6 @@ export default function AethonPage() {
   const [error, setError] = useState<string | null>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([])
-  const [showAttachments, setShowAttachments] = useState(false)
 
   useEffect(() => {
     // Add welcome message
@@ -139,7 +116,7 @@ How can I assist with your research today?`,
 
   const handleSendMessage = async (messageText?: string) => {
     const messageToSend = messageText || input.trim()
-    if ((!messageToSend && attachedFiles.length === 0) || isLoading) return
+    if (!messageToSend || isLoading) return
 
     setError(null)
     setInput("")
@@ -148,10 +125,9 @@ How can I assist with your research today?`,
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
-      content: messageToSend || "Attached files for analysis",
+      content: messageToSend,
       role: "user",
       timestamp: new Date().toISOString(),
-      attachedFiles: attachedFiles.length > 0 ? attachedFiles : undefined,
     }
 
     setMessages((prev) => [...prev, userMessage])
@@ -171,7 +147,6 @@ How can I assist with your research today?`,
         body: JSON.stringify({
           message: messageToSend,
           conversation_history: conversationHistory,
-          attached_files: attachedFiles,
         }),
       })
 
@@ -192,10 +167,6 @@ How can I assist with your research today?`,
       }
 
       setMessages((prev) => [...prev, assistantMessage])
-      
-      // Clear attachments after sending
-      setAttachedFiles([])
-      setShowAttachments(false)
     } catch (error) {
       console.error("Error calling AI:", error)
       setError("Failed to get AI response. Please ensure the Python backend is running.")
@@ -213,15 +184,6 @@ How can I assist with your research today?`,
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleFilesChange = (files: AttachedFile[]) => {
-    setAttachedFiles(files)
-  }
-
-  const handleFileAnalysis = (fileId: string, analysis: any) => {
-    // File analysis is handled within the FileAttachmentHandler
-    // This could trigger additional actions if needed
   }
 
   const handleQuickPrompt = (prompt: string) => {
@@ -271,19 +233,9 @@ How can I assist with your research today?`,
               <p className="text-muted-foreground">Advanced Python-powered research guidance</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowAttachments(!showAttachments)}
-              className={attachedFiles.length > 0 ? "border-primary" : ""}
-            >
-              <Paperclip className="mr-2 h-4 w-4" />
-              Attach ({attachedFiles.length})
-            </Button>
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
-              Python Enhanced
-            </Badge>
-          </div>
+          <Badge variant="secondary" className="bg-green-100 text-green-800">
+            Python Enhanced
+          </Badge>
         </div>
 
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -395,32 +347,6 @@ How can I assist with your research today?`,
                               )}
                             </div>
 
-                            {/* Attached Files Display */}
-                            {message.attachedFiles && message.attachedFiles.length > 0 && (
-                              <div className="mt-3 space-y-2">
-                                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                                  <Paperclip className="h-3 w-3" />
-                                  Attached Files ({message.attachedFiles.length})
-                                </div>
-                                <div className="grid grid-cols-1 gap-2">
-                                  {message.attachedFiles.map((file) => (
-                                    <div key={file.id} className="flex items-center gap-2 p-2 bg-background border rounded text-xs">
-                                      {file.type.includes('image') ? <FileImage className="h-3 w-3" /> :
-                                       file.type.includes('pdf') ? <FileText className="h-3 w-3" /> :
-                                       <File className="h-3 w-3" />}
-                                      <span className="flex-1 truncate">{file.name}</span>
-                                      {file.status === 'analyzed' && (
-                                        <Badge variant="secondary" className="text-xs">
-                                          <Brain className="h-2 w-2 mr-1" />
-                                          Analyzed
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
                             {/* Suggestions */}
                             {message.suggestions && message.suggestions.length > 0 && (
                               <div className="mt-3 space-y-2">
@@ -513,42 +439,22 @@ How can I assist with your research today?`,
 
                 {/* Input Area */}
                 <div className="p-4">
-                  {/* File Attachments */}
-                  {showAttachments && (
-                    <div className="mb-4">
-                      <FileAttachmentHandler
-                        onFilesChange={handleFilesChange}
-                        onFileAnalysis={handleFileAnalysis}
-                        maxFiles={5}
-                        maxFileSize={10}
-                      />
-                    </div>
-                  )}
-                  
                   <div className="flex gap-2">
                     <Input
                       ref={inputRef}
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
-                      placeholder={attachedFiles.length > 0 ? 
-                        `Ask about your ${attachedFiles.length} attached file${attachedFiles.length > 1 ? 's' : ''}...` :
-                        "Ask me about research methodology, literature reviews, data analysis..."
-                      }
+                      placeholder="Ask me about research methodology, literature reviews, data analysis..."
                       onKeyPress={(e) => e.key === "Enter" && !e.shiftKey && handleSendMessage()}
                       disabled={isLoading}
                       className="flex-1"
                     />
-                    <Button 
-                      onClick={() => handleSendMessage()} 
-                      disabled={isLoading || (!input.trim() && attachedFiles.length === 0)} 
-                      size="icon"
-                    >
+                    <Button onClick={() => handleSendMessage()} disabled={isLoading || !input.trim()} size="icon">
                       <Send className="h-4 w-4" />
                     </Button>
                   </div>
                   <div className="text-xs text-muted-foreground mt-2">
                     Powered by Python AI • Press Enter to send • Shift+Enter for new line
-                    {attachedFiles.length > 0 && ` • ${attachedFiles.length} file${attachedFiles.length > 1 ? 's' : ''} attached`}
                   </div>
                 </div>
               </CardContent>

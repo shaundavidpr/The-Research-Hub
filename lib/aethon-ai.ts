@@ -6,7 +6,6 @@ interface AethonResponse {
     label: string
     data?: any
   }>
-  fileAnalysis?: any
 }
 
 interface ResearchContext {
@@ -15,7 +14,6 @@ interface ResearchContext {
   userFiles?: any[]
   userProjects?: any[]
   recentActivity?: any[]
-  attachedFiles?: any[]
 }
 
 class AethonAI {
@@ -24,13 +22,12 @@ class AethonAI {
   async generateResponse(
     prompt: string, 
     context?: ResearchContext,
-    taskType?: string,
-    attachedFiles?: any[]
+    taskType?: string
   ): Promise<AethonResponse> {
     // In a real implementation, this would call OpenAI or another AI service
     // For now, we'll provide intelligent mock responses based on the prompt and context
 
-    const responses = this.getIntelligentResponse(prompt, context, taskType, attachedFiles)
+    const responses = this.getIntelligentResponse(prompt, context, taskType)
     
     // Simulate AI processing delay
     await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000))
@@ -38,13 +35,8 @@ class AethonAI {
     return responses
   }
 
-  private getIntelligentResponse(prompt: string, context?: ResearchContext, taskType?: string, attachedFiles?: any[]): AethonResponse {
+  private getIntelligentResponse(prompt: string, context?: ResearchContext, taskType?: string): AethonResponse {
     const lowerPrompt = prompt.toLowerCase()
-    
-    // Handle file attachments
-    if (attachedFiles && attachedFiles.length > 0) {
-      return this.generateFileAnalysisResponse(attachedFiles, prompt)
-    }
 
     // Literature Analysis
     if (lowerPrompt.includes('literature') || lowerPrompt.includes('review') || taskType === 'literature') {
@@ -423,72 +415,6 @@ What specific aspect of your research would you like to work on today? I can pro
         { type: "upload_file", label: "Upload Research File" },
         { type: "create_timeline", label: "Plan Research Timeline" }
       ]
-    }
-  }
-
-  private generateFileAnalysisResponse(attachedFiles: any[], prompt: string): AethonResponse {
-    const fileCount = attachedFiles.length
-    const fileTypes = attachedFiles.map(f => f.type || 'unknown')
-    
-    let analysisText = `I've analyzed your ${fileCount} uploaded file${fileCount > 1 ? 's' : ''}:\n\n`
-    
-    attachedFiles.forEach((file, index) => {
-      analysisText += `**${file.name}**\n`
-      
-      if (file.type?.includes('pdf')) {
-        analysisText += `- Type: PDF Document\n`
-        analysisText += `- Content: Academic/research paper with structured sections\n`
-        analysisText += `- Key Elements: Abstract, methodology, results, references\n`
-        analysisText += `- Suitable for: Literature review, citation extraction, content analysis\n\n`
-      } else if (file.type?.includes('text')) {
-        analysisText += `- Type: Text Document\n`
-        analysisText += `- Content: Unstructured text content\n`
-        analysisText += `- Suitable for: Content analysis, note-taking, summarization\n\n`
-      } else if (file.type?.includes('csv') || file.type?.includes('excel')) {
-        analysisText += `- Type: Data File\n`
-        analysisText += `- Content: Structured research data\n`
-        analysisText += `- Suitable for: Statistical analysis, data visualization, pattern recognition\n\n`
-      } else {
-        analysisText += `- Type: ${file.type || 'Unknown'}\n`
-        analysisText += `- Ready for analysis and integration into your research workflow\n\n`
-      }
-    })
-    
-    analysisText += `**Recommendations:**\n`
-    analysisText += `- Extract key insights and findings from each document\n`
-    analysisText += `- Create structured summaries for your literature review\n`
-    analysisText += `- Identify connections between uploaded materials\n`
-    analysisText += `- Generate citations and references where applicable\n`
-    
-    if (prompt && prompt.trim()) {
-      analysisText += `\n**Regarding your question: "${prompt}"**\n`
-      analysisText += `Based on the uploaded files, I can help you analyze the content in relation to your specific question. The files appear to contain relevant research material that can inform your inquiry.`
-    }
-    
-    return {
-      text: analysisText,
-      suggestions: [
-        "Summarize key findings from all files",
-        "Extract citations and references",
-        "Create research notes from file content",
-        "Identify research gaps and opportunities"
-      ],
-      actions: [
-        { type: "create_note", label: "Save File Analysis Notes", data: { type: "file_analysis" } },
-        { type: "extract_citations", label: "Extract Citations" },
-        { type: "create_summary", label: "Generate Summary" },
-        { type: "create_timeline", label: "Plan Analysis Tasks" }
-      ],
-      fileAnalysis: {
-        fileCount,
-        fileTypes,
-        analysisComplete: true,
-        recommendations: [
-          "Files successfully processed and ready for research integration",
-          "Content analysis reveals structured research material",
-          "Suitable for academic workflow and citation management"
-        ]
-      }
     }
   }
 
