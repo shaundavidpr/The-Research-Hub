@@ -15,111 +15,94 @@ CREATE TABLE IF NOT EXISTS users (
 -- User profiles table for detailed research information
 CREATE TABLE IF NOT EXISTS user_profiles (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    title VARCHAR(100),
+    user_id TEXT REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
+    title VARCHAR(255),
     institution VARCHAR(255),
     department VARCHAR(255),
     bio TEXT,
-    avatar TEXT,
-    
-    -- Academic Information
-    degree VARCHAR(100),
-    field VARCHAR(255),
-    advisor VARCHAR(255),
-    year_started INTEGER,
-    orcid VARCHAR(50),
-    google_scholar TEXT,
-    
-    -- Research Interests (stored as JSON arrays)
-    research_topics JSONB DEFAULT '[]',
-    methodologies JSONB DEFAULT '[]',
-    specializations JSONB DEFAULT '[]',
-    
-    -- Privacy & Preferences
-    profile_visibility VARCHAR(50) DEFAULT 'public',
-    allow_messages BOOLEAN DEFAULT TRUE,
-    allow_collaboration BOOLEAN DEFAULT TRUE,
-    email_notifications BOOLEAN DEFAULT TRUE,
-    research_updates BOOLEAN DEFAULT TRUE,
-    
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    research_interests TEXT[],
+    methodologies TEXT[],
+    avatar_url TEXT,
+    website_url TEXT,
+    orcid_id VARCHAR(50),
+    google_scholar_url TEXT,
+    linkedin_url TEXT,
+    twitter_handle VARCHAR(50),
+    privacy_level VARCHAR(20) DEFAULT 'public',
+    collaboration_open BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Notes table for research notes
-CREATE TABLE IF NOT EXISTS notes (
+CREATE TABLE IF NOT EXISTS research_notes (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
     title VARCHAR(500) NOT NULL,
     content TEXT,
-    type VARCHAR(50) DEFAULT 'research', -- 'research', 'personal'
-    tags JSONB DEFAULT '[]',
+    tags TEXT[],
     project_id INTEGER,
-    is_favorite BOOLEAN DEFAULT FALSE,
-    is_public BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    is_private BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Projects table for research projects
-CREATE TABLE IF NOT EXISTS projects (
+CREATE TABLE IF NOT EXISTS research_projects (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
     title VARCHAR(500) NOT NULL,
     description TEXT,
-    status VARCHAR(50) DEFAULT 'planning', -- 'planning', 'active', 'completed', 'archived'
-    progress INTEGER DEFAULT 0,
+    status VARCHAR(50) DEFAULT 'active',
     start_date DATE,
     end_date DATE,
-    collaborators JSONB DEFAULT '[]',
-    tags JSONB DEFAULT '[]',
-    is_public BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    collaborators TEXT[],
+    tags TEXT[],
+    is_private BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Files table for document management
-CREATE TABLE IF NOT EXISTS files (
+CREATE TABLE IF NOT EXISTS research_files (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    name VARCHAR(500) NOT NULL,
-    type VARCHAR(100),
-    size BIGINT,
-    url TEXT NOT NULL,
-    project_id INTEGER REFERENCES projects(id) ON DELETE SET NULL,
-    metadata JSONB DEFAULT '{}', -- title, authors, abstract, keywords, doi
-    is_public BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    user_id TEXT REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
+    filename VARCHAR(500) NOT NULL,
+    original_filename VARCHAR(500) NOT NULL,
+    file_type VARCHAR(100),
+    file_size BIGINT,
+    file_url TEXT,
+    project_id INTEGER,
+    tags TEXT[],
+    description TEXT,
+    is_private BOOLEAN DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Citations table for reference management
 CREATE TABLE IF NOT EXISTS citations (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    type VARCHAR(50) NOT NULL, -- 'article', 'book', 'website', 'conference'
+    user_id TEXT REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
     title VARCHAR(1000) NOT NULL,
-    authors JSONB DEFAULT '[]',
+    authors TEXT[],
     journal VARCHAR(500),
     year INTEGER,
     doi VARCHAR(255),
     url TEXT,
-    pages VARCHAR(50),
-    volume VARCHAR(50),
-    issue VARCHAR(50),
-    publisher VARCHAR(500),
-    tags JSONB DEFAULT '[]',
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    citation_style VARCHAR(50) DEFAULT 'apa',
+    formatted_citation TEXT,
+    tags TEXT[],
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Timeline/Calendar events
 CREATE TABLE IF NOT EXISTS timeline_events (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+    project_id INTEGER REFERENCES research_projects(id) ON DELETE CASCADE,
     title VARCHAR(500) NOT NULL,
     description TEXT,
     type VARCHAR(50) DEFAULT 'task', -- 'milestone', 'deadline', 'meeting', 'task'
@@ -133,7 +116,7 @@ CREATE TABLE IF NOT EXISTS timeline_events (
 -- Research papers/publications
 CREATE TABLE IF NOT EXISTS papers (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
     title VARCHAR(1000) NOT NULL,
     abstract TEXT,
     content TEXT,
@@ -149,37 +132,37 @@ CREATE TABLE IF NOT EXISTS papers (
     views INTEGER DEFAULT 0,
     downloads INTEGER DEFAULT 0,
     likes INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Social features - follows
-CREATE TABLE IF NOT EXISTS follows (
+CREATE TABLE IF NOT EXISTS user_follows (
     id SERIAL PRIMARY KEY,
-    follower_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    following_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW(),
+    follower_id TEXT REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
+    following_id TEXT REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(follower_id, following_id)
 );
 
 -- Social features - likes
-CREATE TABLE IF NOT EXISTS likes (
+CREATE TABLE IF NOT EXISTS paper_likes (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    paper_id INTEGER REFERENCES papers(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW(),
+    user_id TEXT REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
+    paper_id INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(user_id, paper_id)
 );
 
 -- Comments on papers
-CREATE TABLE IF NOT EXISTS comments (
+CREATE TABLE IF NOT EXISTS research_comments (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    paper_id INTEGER REFERENCES papers(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES neon_auth.users_sync(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
-    parent_id INTEGER REFERENCES comments(id) ON DELETE CASCADE, -- For replies
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    parent_type VARCHAR(50) NOT NULL, -- 'note', 'project', 'paper'
+    parent_id INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Chat messages for AI assistant
@@ -189,24 +172,31 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     message TEXT NOT NULL,
     response TEXT,
     context JSONB DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Contact submissions table
+CREATE TABLE IF NOT EXISTS contact_submissions (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    subject VARCHAR(500) NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(50) DEFAULT 'general',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    status VARCHAR(20) DEFAULT 'new'
 );
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON user_profiles(user_id);
-CREATE INDEX IF NOT EXISTS idx_notes_user_id ON notes(user_id);
-CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id);
-CREATE INDEX IF NOT EXISTS idx_files_user_id ON files(user_id);
+CREATE INDEX IF NOT EXISTS idx_research_notes_user_id ON research_notes(user_id);
+CREATE INDEX IF NOT EXISTS idx_research_projects_user_id ON research_projects(user_id);
 CREATE INDEX IF NOT EXISTS idx_citations_user_id ON citations(user_id);
-CREATE INDEX IF NOT EXISTS idx_timeline_events_user_id ON timeline_events(user_id);
-CREATE INDEX IF NOT EXISTS idx_papers_user_id ON papers(user_id);
-CREATE INDEX IF NOT EXISTS idx_follows_follower_id ON follows(follower_id);
-CREATE INDEX IF NOT EXISTS idx_follows_following_id ON follows(following_id);
-CREATE INDEX IF NOT EXISTS idx_likes_user_id ON likes(user_id);
-CREATE INDEX IF NOT EXISTS idx_likes_paper_id ON likes(paper_id);
-CREATE INDEX IF NOT EXISTS idx_comments_paper_id ON comments(paper_id);
-CREATE INDEX IF NOT EXISTS idx_chat_messages_user_id ON chat_messages(user_id);
+CREATE INDEX IF NOT EXISTS idx_research_files_user_id ON research_files(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_follows_follower ON user_follows(follower_id);
+CREATE INDEX IF NOT EXISTS idx_user_follows_following ON user_follows(following_id);
+CREATE INDEX IF NOT EXISTS idx_contact_submissions_created_at ON contact_submissions(created_at);
 
 -- Insert sample data for testing
 INSERT INTO users (email, name, provider, created_at) VALUES 
