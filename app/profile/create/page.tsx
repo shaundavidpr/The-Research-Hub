@@ -46,6 +46,30 @@ interface ProfileData {
   researchUpdates: boolean
 }
 
+const ACADEMIC_TITLES = [
+  { value: "undergraduate", label: "Undergraduate Student" },
+  { value: "graduate", label: "Graduate Student" },
+  { value: "masters", label: "Master's Student" },
+  { value: "phd", label: "PhD Student" },
+  { value: "phd-candidate", label: "PhD Candidate" },
+  { value: "postdoc", label: "Postdoctoral Researcher" },
+  { value: "research-assistant", label: "Research Assistant" },
+  { value: "research-associate", label: "Research Associate" },
+  { value: "research-scientist", label: "Research Scientist" },
+  { value: "senior-researcher", label: "Senior Researcher" },
+  { value: "principal-investigator", label: "Principal Investigator" },
+  { value: "lecturer", label: "Lecturer" },
+  { value: "assistant-professor", label: "Assistant Professor" },
+  { value: "associate-professor", label: "Associate Professor" },
+  { value: "professor", label: "Professor" },
+  { value: "emeritus-professor", label: "Professor Emeritus" },
+  { value: "visiting-scholar", label: "Visiting Scholar" },
+  { value: "industry-researcher", label: "Industry Researcher" },
+  { value: "consultant", label: "Research Consultant" },
+  { value: "independent", label: "Independent Researcher" },
+  { value: "other", label: "Other" },
+]
+
 const RESEARCH_TOPICS = [
   "Artificial Intelligence",
   "Machine Learning",
@@ -180,30 +204,41 @@ export default function CreateProfilePage() {
 
   const handleSubmit = async () => {
     try {
-      // Save to database via API
-      const response = await fetch("/api/profile", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      // Initialize profile with zero stats
+      const completeProfile = {
+        ...profileData,
+        followers: 0,
+        following: 0,
+        papers: 0,
+        citations: 0,
+        hIndex: 0,
+        joinDate: new Date().toISOString(),
+        achievements: [],
+        researchInterests: profileData.researchTopics,
+        skills: [],
+        languages: [],
+        socialLinks: {
+          twitter: "",
+          linkedin: "",
+          github: "",
+          orcid: profileData.orcid || "",
+          googleScholar: profileData.googleScholar || "",
         },
-        body: JSON.stringify(profileData),
+        location: "",
+        website: "",
+        phone: "",
+        isPublic: profileData.profileVisibility === "public",
+      }
+
+      // Save to localStorage (in real app, this would be an API call)
+      localStorage.setItem("userProfile", JSON.stringify(completeProfile))
+
+      toast({
+        title: "Profile created successfully!",
+        description: "Welcome to The Research Hub community.",
       })
 
-      if (response.ok) {
-        const savedProfile = await response.json()
-
-        // Update localStorage with complete profile
-        localStorage.setItem("userProfile", JSON.stringify(savedProfile))
-
-        toast({
-          title: "Profile created successfully!",
-          description: "Welcome to The Research Hub community.",
-        })
-
-        router.push("/dashboard")
-      } else {
-        throw new Error("Failed to save profile")
-      }
+      router.push("/dashboard")
     } catch (error) {
       toast({
         title: "Error creating profile",
@@ -241,7 +276,6 @@ export default function CreateProfilePage() {
                   size="sm"
                   className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0"
                   onClick={() => {
-                    // In a real app, this would open a file picker
                     toast({
                       title: "Avatar upload",
                       description: "Avatar upload functionality will be implemented with file storage.",
@@ -260,7 +294,7 @@ export default function CreateProfilePage() {
                   id="name"
                   value={profileData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder="Dr. Jane Smith"
+                  placeholder=""
                 />
               </div>
 
@@ -271,7 +305,7 @@ export default function CreateProfilePage() {
                   type="email"
                   value={profileData.email}
                   onChange={(e) => handleInputChange("email", e.target.value)}
-                  placeholder="jane.smith@university.edu"
+                  placeholder=""
                   disabled
                 />
               </div>
@@ -283,15 +317,11 @@ export default function CreateProfilePage() {
                     <SelectValue placeholder="Select your title" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="undergraduate">Undergraduate Student</SelectItem>
-                    <SelectItem value="graduate">Graduate Student</SelectItem>
-                    <SelectItem value="phd">PhD Student</SelectItem>
-                    <SelectItem value="postdoc">Postdoctoral Researcher</SelectItem>
-                    <SelectItem value="assistant">Assistant Professor</SelectItem>
-                    <SelectItem value="associate">Associate Professor</SelectItem>
-                    <SelectItem value="professor">Professor</SelectItem>
-                    <SelectItem value="researcher">Research Scientist</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    {ACADEMIC_TITLES.map((title) => (
+                      <SelectItem key={title.value} value={title.value}>
+                        {title.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -302,7 +332,7 @@ export default function CreateProfilePage() {
                   id="institution"
                   value={profileData.institution}
                   onChange={(e) => handleInputChange("institution", e.target.value)}
-                  placeholder="Harvard University"
+                  placeholder=""
                 />
               </div>
 
@@ -312,7 +342,7 @@ export default function CreateProfilePage() {
                   id="department"
                   value={profileData.department}
                   onChange={(e) => handleInputChange("department", e.target.value)}
-                  placeholder="Computer Science"
+                  placeholder=""
                 />
               </div>
             </div>
@@ -323,7 +353,7 @@ export default function CreateProfilePage() {
                 id="bio"
                 value={profileData.bio}
                 onChange={(e) => handleInputChange("bio", e.target.value)}
-                placeholder="Tell us about your research interests and background..."
+                placeholder=""
                 rows={4}
               />
             </div>
@@ -362,7 +392,7 @@ export default function CreateProfilePage() {
                   id="field"
                   value={profileData.field}
                   onChange={(e) => handleInputChange("field", e.target.value)}
-                  placeholder="Computer Science"
+                  placeholder=""
                 />
               </div>
 
@@ -372,7 +402,7 @@ export default function CreateProfilePage() {
                   id="advisor"
                   value={profileData.advisor}
                   onChange={(e) => handleInputChange("advisor", e.target.value)}
-                  placeholder="Prof. John Doe"
+                  placeholder=""
                 />
               </div>
 
@@ -383,7 +413,7 @@ export default function CreateProfilePage() {
                   type="number"
                   value={profileData.yearStarted}
                   onChange={(e) => handleInputChange("yearStarted", e.target.value)}
-                  placeholder="2020"
+                  placeholder=""
                 />
               </div>
 
@@ -393,7 +423,7 @@ export default function CreateProfilePage() {
                   id="orcid"
                   value={profileData.orcid}
                   onChange={(e) => handleInputChange("orcid", e.target.value)}
-                  placeholder="0000-0000-0000-0000"
+                  placeholder=""
                 />
               </div>
 
@@ -403,7 +433,7 @@ export default function CreateProfilePage() {
                   id="googleScholar"
                   value={profileData.googleScholar}
                   onChange={(e) => handleInputChange("googleScholar", e.target.value)}
-                  placeholder="https://scholar.google.com/citations?user=..."
+                  placeholder=""
                 />
               </div>
             </div>
@@ -474,7 +504,7 @@ export default function CreateProfilePage() {
                 <Label htmlFor="specializations">Specializations</Label>
                 <Textarea
                   id="specializations"
-                  placeholder="List any specific specializations, techniques, or areas of expertise..."
+                  placeholder=""
                   rows={3}
                   onChange={(e) => {
                     const specs = e.target.value

@@ -64,6 +64,24 @@ export function HeroSection() {
             </div>
           </div>
         </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="rounded-lg bg-card p-4 text-center shadow-sm">
+            <div className="text-3xl font-bold text-primary">0</div>
+            <p className="text-sm text-muted-foreground">Researchers</p>
+          </div>
+          <div className="rounded-lg bg-card p-4 text-center shadow-sm">
+            <div className="text-3xl font-bold text-primary">0</div>
+            <p className="text-sm text-muted-foreground">Papers Analyzed</p>
+          </div>
+          <div className="rounded-lg bg-card p-4 text-center shadow-sm">
+            <div className="text-3xl font-bold text-primary">0</div>
+            <p className="text-sm text-muted-foreground">Projects</p>
+          </div>
+          <div className="rounded-lg bg-card p-4 text-center shadow-sm">
+            <div className="text-3xl font-bold text-primary">0</div>
+            <p className="text-sm text-muted-foreground">Citations Generated</p>
+          </div>
+        </div>
       </div>
     </section>
   )

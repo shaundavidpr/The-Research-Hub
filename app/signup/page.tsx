@@ -11,8 +11,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
-import { Brain, Mail, User } from "lucide-react"
+import { Brain, Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react"
 
 declare global {
   interface Window {
@@ -29,7 +30,7 @@ export default function SignupPage() {
     name: "",
     email: "",
     password: "",
-    acceptTerms: false
+    acceptTerms: false,
   })
   const [error, setError] = useState("")
   const [passwordStrength, setPasswordStrength] = useState(0)
@@ -70,7 +71,7 @@ export default function SignupPage() {
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
-          password: formData.password
+          password: formData.password,
         }),
       })
 
@@ -104,15 +105,12 @@ export default function SignupPage() {
       window.google.accounts.id.prompt((notification: any) => {
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
           // Fallback to popup if prompt fails
-          window.google.accounts.id.renderButton(
-            document.getElementById("google-signup-button"),
-            {
-              theme: "outline",
-              size: "large",
-              width: "100%",
-              text: "signup_with",
-            }
-          )
+          window.google.accounts.id.renderButton(document.getElementById("google-signup-button"), {
+            theme: "outline",
+            size: "large",
+            width: "100%",
+            text: "signup_with",
+          })
         }
       })
     }
@@ -138,7 +136,7 @@ export default function SignupPage() {
           title: data.isNewUser ? "Welcome to The Research Hub!" : "Welcome back!",
           description: data.message || "You've been signed in successfully.",
         })
-        
+
         if (data.isNewUser) {
           router.push("/profile/create")
         } else {
@@ -155,9 +153,9 @@ export default function SignupPage() {
   }
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }))
     if (error) setError("")
-    
+
     if (field === "password" && typeof value === "string") {
       setPasswordStrength(checkPasswordStrength(value))
     }
@@ -178,9 +176,9 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30 flex items-center justify-center p-4">
       {/* Google Sign-In Script */}
-      <script 
-        src="https://accounts.google.com/gsi/client" 
-        async 
+      <script
+        src="https://accounts.google.com/gsi/client"
+        async
         defer
         onLoad={() => {
           if (typeof window !== "undefined" && window.google) {
@@ -202,17 +200,13 @@ export default function SignupPage() {
             <span className="text-2xl font-bold">The Research Hub</span>
           </Link>
           <h1 className="text-3xl font-bold mb-2">Join The Research Hub</h1>
-          <p className="text-muted-foreground">
-            Start your research journey with AI-powered tools
-          </p>
+          <p className="text-muted-foreground">Start your research journey with AI-powered tools</p>
         </div>
 
         <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">Create Account</CardTitle>
-            <CardDescription className="text-center">
-              Join thousands of researchers worldwide
-            </CardDescription>
+            <CardDescription className="text-center">Join thousands of researchers worldwide</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {error && (
@@ -292,4 +286,81 @@ export default function SignupPage() {
                     onChange={(e) => handleInputChange("email", e.target.value)}
                     className="pl-10 h-12"
                     required
-                  />\
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Your password"
+                    value={formData.password}
+                    onChange={(e) => handleInputChange("password", e.target.value)}
+                    className="pl-10 h-12"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff /> : <Eye />}
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Password strength: {getPasswordStrengthText()}</span>
+                  <div className={`w-1/2 h-2 rounded-full ${getPasswordStrengthColor()}`}></div>
+                </div>
+              </div>
+
+              <div className="flex items-center">
+                <Checkbox
+                  id="acceptTerms"
+                  checked={formData.acceptTerms}
+                  onCheckedChange={(checked) => handleInputChange("acceptTerms", checked)}
+                />
+                <Label htmlFor="acceptTerms" className="ml-2">
+                  I agree to the <span className="text-blue-600">terms and conditions</span>
+                </Label>
+              </div>
+
+              <Button type="submit" className="w-full h-12" disabled={isLoading}>
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="w-5 h-5 mr-2 animate-spin" viewBox="0 0 24 24">
+                      <circle
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        fill="none"
+                        className="opacity-20"
+                      />
+                      <path
+                        d="M4 12a8 8 0 018-8V0C5.38 0 0 5.38 0 12h4zm2 5.29A7.93 7.93 0 0012 4a7.93 7.93 0 00-8 7.93v2.06z"
+                        fill="currentColor"
+                        className="opacity-100"
+                      />
+                    </svg>
+                    Signing up...
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center">
+                    Sign up
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </span>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
+}
