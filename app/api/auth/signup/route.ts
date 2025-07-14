@@ -17,9 +17,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Password must be at least 8 characters long" }, { status: 400 })
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: "Invalid email format" }, { status: 400 })
+    }
+
     // Check if user already exists
     const existingUser = await sql`
-      SELECT * FROM neon_auth.users_sync WHERE email = ${email}
+      SELECT * FROM users WHERE email = ${email}
     `
 
     if (existingUser.length > 0) {
@@ -31,26 +37,39 @@ export async function POST(request: NextRequest) {
 
     // Create user
     const newUsers = await sql`
-      INSERT INTO neon_auth.users_sync (id, email, name, raw_json, created_at, updated_at)
-      VALUES (${crypto.randomUUID()}, ${email}, ${name}, ${JSON.stringify({
-        email,
-        name,
-        password: hashedPassword,
-        provider: "email",
-      })}, NOW(), NOW())
-      RETURNING *
+      INSERT INTO users (email, name, password_hash, provider, email_verified, created_at, updated_at)
+      VALUES (${email}, ${name}, ${hashedPassword}, 'email', false, NOW(), NOW())
+      RETURNING id, email, name, created_at
     `
 
     const user = newUsers[0]
 
-    // Create session
-    const response = NextResponse.json({ success: true, user: { id: user.id, email: user.email, name: user.name } })
+    // Create session token
+    const sessionToken = crypto.randomUUID()
 
-    response.cookies.set("user_session", JSON.stringify({ userId: user.id, email: user.email }), {
+    // Store session in database
+    await sql`
+      INSERT INTO user_sessions (user_id, session_token, expires_at, created_at)
+      VALUES (${user.id}, ${sessionToken}, NOW() + INTERVAL '7 days', NOW())
+    `
+
+    // Create response with session cookie
+    const response = NextResponse.json({
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      message: "Account created successfully!",
+    })
+
+    response.cookies.set("session_token", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/",
     })
 
     return response

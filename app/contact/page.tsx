@@ -4,13 +4,31 @@ import type React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { toast } from "sonner"
-import { Mail, Phone, MapPin, Clock, Send, MessageSquare, Users, Headphones, Globe, CheckCircle } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Clock,
+  Send,
+  MessageSquare,
+  Users,
+  Headphones,
+  Building,
+  Globe,
+  CheckCircle,
+  ArrowRight,
+} from "lucide-react"
 
 export default function ContactPage() {
+  const { toast } = useToast()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -18,7 +36,6 @@ export default function ContactPage() {
     message: "",
     type: "general",
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,39 +51,49 @@ export default function ContactPage() {
       })
 
       if (response.ok) {
-        toast.success("Message sent successfully! We'll get back to you soon.")
-        setFormData({
-          name: "",
-          email: "",
-          subject: "",
-          message: "",
-          type: "general",
+        toast({
+          title: "Message sent successfully!",
+          description: "We'll get back to you within 24 hours.",
         })
+        setFormData({ name: "", email: "", subject: "", message: "", type: "general" })
       } else {
         throw new Error("Failed to send message")
       }
     } catch (error) {
-      toast.error("Failed to send message. Please try again.")
+      toast({
+        title: "Error sending message",
+        description: "Please try again or contact us directly.",
+        variant: "destructive",
+      })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
+  const handleInputChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/30">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 text-white py-16">
-        <div className="container max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">Get in Touch</h1>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto">
-            Have questions about The Research Hub? We're here to help you accelerate your research journey.
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 text-white py-20">
+        <div className="container max-w-6xl mx-auto px-4 text-center">
+          <div className="flex justify-center mb-6">
+            <Badge variant="secondary" className="bg-white/20 text-white border-white/30 px-4 py-2">
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Get in Touch
+            </Badge>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            Let's Build the Future of
+            <span className="block bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
+              Research Together
+            </span>
+          </h1>
+          <p className="text-xl text-white/90 max-w-3xl mx-auto">
+            Have questions about our platform? Need enterprise solutions? Want to collaborate? We're here to help you
+            accelerate your research journey.
           </p>
         </div>
       </div>
@@ -75,101 +102,99 @@ export default function ContactPage() {
         <div className="grid lg:grid-cols-3 gap-12">
           {/* Contact Form */}
           <div className="lg:col-span-2">
-            <Card className="shadow-lg border-0">
+            <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-2xl">Send us a Message</CardTitle>
-                <CardDescription>Fill out the form below and we'll get back to you within 24 hours.</CardDescription>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Send className="h-6 w-6 text-primary" />
+                  Send us a Message
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Fill out the form below and we'll get back to you as soon as possible.
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium mb-2">
-                        Full Name *
-                      </label>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Full Name *</Label>
                       <Input
                         id="name"
-                        name="name"
                         value={formData.name}
-                        onChange={handleInputChange}
+                        onChange={(e) => handleInputChange("name", e.target.value)}
+                        placeholder="Dr. Jane Smith"
                         required
-                        placeholder="Your full name"
+                        className="h-12"
                       />
                     </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium mb-2">
-                        Email Address *
-                      </label>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email Address *</Label>
                       <Input
                         id="email"
-                        name="email"
                         type="email"
                         value={formData.email}
-                        onChange={handleInputChange}
+                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        placeholder="jane.smith@university.edu"
                         required
-                        placeholder="your.email@example.com"
+                        className="h-12"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label htmlFor="type" className="block text-sm font-medium mb-2">
-                      Inquiry Type
-                    </label>
-                    <select
-                      id="type"
-                      name="type"
-                      value={formData.type}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="general">General Inquiry</option>
-                      <option value="support">Technical Support</option>
-                      <option value="sales">Sales & Pricing</option>
-                      <option value="partnership">Partnership</option>
-                      <option value="feedback">Feedback</option>
-                    </select>
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Inquiry Type</Label>
+                    <Select value={formData.type} onValueChange={(value) => handleInputChange("type", value)}>
+                      <SelectTrigger className="h-12">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="general">General Inquiry</SelectItem>
+                        <SelectItem value="support">Technical Support</SelectItem>
+                        <SelectItem value="enterprise">Enterprise Solutions</SelectItem>
+                        <SelectItem value="partnership">Partnership</SelectItem>
+                        <SelectItem value="feedback">Feedback</SelectItem>
+                        <SelectItem value="media">Media & Press</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <div>
-                    <label htmlFor="subject" className="block text-sm font-medium mb-2">
-                      Subject *
-                    </label>
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">Subject *</Label>
                     <Input
                       id="subject"
-                      name="subject"
                       value={formData.subject}
-                      onChange={handleInputChange}
+                      onChange={(e) => handleInputChange("subject", e.target.value)}
+                      placeholder="How can we help you?"
                       required
-                      placeholder="Brief description of your inquiry"
+                      className="h-12"
                     />
                   </div>
 
-                  <div>
-                    <label htmlFor="message" className="block text-sm font-medium mb-2">
-                      Message *
-                    </label>
+                  <div className="space-y-2">
+                    <Label htmlFor="message">Message *</Label>
                     <Textarea
                       id="message"
-                      name="message"
                       value={formData.message}
-                      onChange={handleInputChange}
+                      onChange={(e) => handleInputChange("message", e.target.value)}
+                      placeholder="Tell us more about your inquiry..."
                       required
-                      rows={6}
-                      placeholder="Please provide details about your inquiry..."
+                      className="min-h-[150px] resize-none"
                     />
                   </div>
 
-                  <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full h-12 text-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
                     {isSubmitting ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                         Sending...
                       </>
                     ) : (
                       <>
-                        <Send className="h-4 w-4 mr-2" />
                         Send Message
+                        <ArrowRight className="ml-2 h-5 w-5" />
                       </>
                     )}
                   </Button>
@@ -179,163 +204,167 @@ export default function ContactPage() {
           </div>
 
           {/* Contact Information */}
-          <div className="space-y-6">
-            <Card className="shadow-lg border-0">
+          <div className="space-y-8">
+            {/* Contact Details */}
+            <Card className="shadow-xl border-0 bg-gradient-to-br from-blue-600 to-purple-600 text-white">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Contact Information
-                </CardTitle>
+                <CardTitle className="text-xl">Get in Touch</CardTitle>
+                <CardDescription className="text-blue-100">Multiple ways to reach our team</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Mail className="h-5 w-5 text-blue-600 mt-1" />
+              <CardContent className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Mail className="h-5 w-5" />
+                  </div>
                   <div>
-                    <div className="font-medium">Email</div>
-                    <div className="text-sm text-muted-foreground">support@researchhub.com</div>
+                    <p className="font-medium">Email</p>
+                    <p className="text-blue-100">support@researchhub.com</p>
+                    <p className="text-blue-100">enterprise@researchhub.com</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Phone className="h-5 w-5 text-green-600 mt-1" />
+
+                <div className="flex items-start gap-4">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Phone className="h-5 w-5" />
+                  </div>
                   <div>
-                    <div className="font-medium">Phone</div>
-                    <div className="text-sm text-muted-foreground">+1 (555) 123-4567</div>
+                    <p className="font-medium">Phone</p>
+                    <p className="text-blue-100">+1 (555) 123-4567</p>
+                    <p className="text-xs text-blue-200">Mon-Fri, 9AM-6PM EST</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-red-600 mt-1" />
+
+                <div className="flex items-start gap-4">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <MapPin className="h-5 w-5" />
+                  </div>
                   <div>
-                    <div className="font-medium">Address</div>
-                    <div className="text-sm text-muted-foreground">
-                      123 Research Ave
-                      <br />
-                      Innovation District
-                      <br />
-                      San Francisco, CA 94105
-                    </div>
+                    <p className="font-medium">Address</p>
+                    <p className="text-blue-100">123 Research Drive</p>
+                    <p className="text-blue-100">Innovation District</p>
+                    <p className="text-blue-100">Boston, MA 02139</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-purple-600 mt-1" />
+
+                <div className="flex items-start gap-4">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Clock className="h-5 w-5" />
+                  </div>
                   <div>
-                    <div className="font-medium">Business Hours</div>
-                    <div className="text-sm text-muted-foreground">
-                      Mon - Fri: 9:00 AM - 6:00 PM PST
-                      <br />
-                      Weekend: Emergency support only
-                    </div>
+                    <p className="font-medium">Business Hours</p>
+                    <p className="text-blue-100">Monday - Friday: 9:00 AM - 6:00 PM EST</p>
+                    <p className="text-blue-100">Saturday: 10:00 AM - 4:00 PM EST</p>
+                    <p className="text-blue-100">Sunday: Closed</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0">
+            {/* Support Options */}
+            <Card className="shadow-xl border-0">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Headphones className="h-5 w-5" />
+                  <Headphones className="h-5 w-5 text-primary" />
                   Support Options
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2 mb-2">
                     <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">24/7 Email Support</span>
+                    <span className="font-medium text-green-800">Live Chat</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Live Chat (Business Hours)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Video Call Support</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Community Forum</span>
-                  </div>
+                  <p className="text-sm text-green-700">Available 24/7 for immediate assistance</p>
                 </div>
-                <Button variant="outline" className="w-full bg-transparent" asChild>
-                  <a href="/support">
-                    <Headphones className="h-4 w-4 mr-2" />
-                    Visit Support Center
-                  </a>
-                </Button>
+
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-blue-800">Community Forum</span>
+                  </div>
+                  <p className="text-sm text-blue-700">Connect with other researchers and get help</p>
+                </div>
+
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Building className="h-4 w-4 text-purple-600" />
+                    <span className="font-medium text-purple-800">Enterprise Support</span>
+                  </div>
+                  <p className="text-sm text-purple-700">Dedicated support for institutional clients</p>
+                </div>
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0 bg-gradient-to-br from-blue-50 to-purple-50">
-              <CardContent className="p-6">
-                <div className="text-center">
-                  <Users className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-                  <h3 className="font-semibold mb-2">Join Our Community</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Connect with researchers worldwide and get instant help from our community.
-                  </p>
-                  <Button size="sm" asChild>
-                    <a href="/community">
-                      <Globe className="h-4 w-4 mr-2" />
-                      Join Community
-                    </a>
-                  </Button>
-                </div>
+            {/* Quick Links */}
+            <Card className="shadow-xl border-0">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-primary" />
+                  Quick Links
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button variant="ghost" className="w-full justify-start" asChild>
+                  <a href="/help">Help Center</a>
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" asChild>
+                  <a href="/docs">Documentation</a>
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" asChild>
+                  <a href="/status">System Status</a>
+                </Button>
+                <Button variant="ghost" className="w-full justify-start" asChild>
+                  <a href="/security">Security</a>
+                </Button>
               </CardContent>
             </Card>
           </div>
         </div>
 
         {/* FAQ Section */}
-        <div className="mt-16">
+        <div className="mt-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-            <p className="text-muted-foreground">Quick answers to common questions</p>
+            <p className="text-muted-foreground text-lg">Quick answers to common questions</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-8">
             <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-lg">How do I get started?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Simply sign up for a free account, complete your researcher profile, and start exploring our
-                  AI-powered tools and global research community.
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-2">How do I get started with The Research Hub?</h3>
+                <p className="text-muted-foreground text-sm">
+                  Simply sign up for a free account and complete your researcher profile. You'll have immediate access
+                  to our AI assistant, note-taking tools, and community features.
                 </p>
               </CardContent>
             </Card>
 
             <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-lg">Is my research data secure?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Yes, we use enterprise-grade security with end-to-end encryption, secure cloud storage, and comply
-                  with international data protection standards.
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-2">Is my research data secure?</h3>
+                <p className="text-muted-foreground text-sm">
+                  Yes, we use enterprise-grade encryption and security measures. Your data is stored securely and you
+                  have full control over privacy settings and sharing permissions.
                 </p>
               </CardContent>
             </Card>
 
             <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-lg">Can I collaborate with other researchers?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-2">Can I collaborate with other researchers?</h3>
+                <p className="text-muted-foreground text-sm">
                   Our platform is designed for collaboration. You can share projects, co-author papers, and connect with
-                  researchers worldwide.
+                  researchers worldwide through our community features.
                 </p>
               </CardContent>
             </Card>
 
             <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="text-lg">What pricing plans are available?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  We offer free accounts for individual researchers, plus premium plans for teams and institutions.
-                  Check our pricing page for detailed information.
+              <CardContent className="p-6">
+                <h3 className="font-semibold mb-2">What makes Aethon AI special?</h3>
+                <p className="text-muted-foreground text-sm">
+                  Aethon is specifically trained for academic research. It can help with literature reviews, methodology
+                  design, data analysis, and academic writing with domain-specific knowledge.
                 </p>
               </CardContent>
             </Card>
