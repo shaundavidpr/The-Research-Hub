@@ -9,24 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/hooks/use-toast"
-import {
-  Brain,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  ArrowRight,
-  Users,
-  BookOpen,
-  Zap,
-  CheckCircle,
-  Globe,
-  Shield,
-  Loader2,
-} from "lucide-react"
+import { Brain, Eye, EyeOff, ArrowRight, Users, BookOpen, Zap, Loader2 } from "lucide-react"
 
 declare global {
   interface Window {
@@ -87,6 +72,7 @@ export default function LoginPage() {
           callback: handleGoogleCallback,
           auto_select: false,
           cancel_on_tap_outside: true,
+          use_fedcm_for_prompt: false, // Explicitly disable FedCM
         })
       }
     }
@@ -326,161 +312,69 @@ export default function LoginPage() {
                     <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                       <path
                         fill="#4285F4"
-                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      />
-                      <path
-                        fill="#34A853"
-                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      />
-                      <path
-                        fill="#FBBC05"
-                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                      />
-                      <path
-                        fill="#EA4335"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        d="M22.56 12.29c0-.75-.06-1.48-.19-2.21H12v4.59h4.73c-.21 1.16-1.01 2.06-2.29 2.25V19h4.59c1.58 0 2.83-.59 3.72-1.59l3.02 3.02C21.44 23.35 24 21.21 24 18.24z M12 23.65c2.93 0 5.26-1.32 6.59-3.51l-3.02-3.02c-.97.33-2.01.51-3.06.51-3.69 0-6.69-2.49-6.69-5.64s3.01-5.64 6.69-5.64c1.05 0 1.99-.18 2.84-.51l3.02 3.02C17.32 12.33 15 13.65 12 13.65c-2.67 0-4.92-1.32-6.59-3.51L5.41 9.1C6.19 11.1 8.13 12.44 10.82 12.44c1.69 0 3.14-.55 4.27-1.41l2.13 2.13C14.5 16.91 13.4 19 12 19z M12 5.35c-2.93 0-5.26 1.32-6.59 3.51L16.59 19c1.58 0 2.83-.59 3.72-1.59l3.02 3.02C21.44 23.35 24 21.21 24 18.24z M12 23.65c2.93 0 5.26-1.32 6.59-3.51l-3.02-3.02c-.97.33-2.01.51-3.06.51-3.69 0-6.69-2.49-6.69-5.64s3.01-5.64 6.69-5.64c1.05 0 1.99-.18 2.84-.51l3.02 3.02C17.32 12.33 15 13.65 12 13.65c-2.67 0-4.92-1.32-6.59-3.51L5.41 9.1C6.19 11.1 8.13 12.44 10.82 12.44c1.69 0 3.14-.55 4.27-1.41l2.13 2.13C14.5 16.91 13.4 19 12 19z M12 5.35c-2.93 0-5.26 1.32-6.59 3.51L16.59 19c1.58 0 2.83-.59 3.72-1.59l3.02 3.02C21.44 23.35 24 21.21 24 18.24z"
                       />
                     </svg>
                   )}
-                  Continue with Google
+                  Google Sign-In
                 </Button>
 
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <Separator className="w-full" />
-                  </div>
-                  <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-white px-2 text-muted-foreground">Or continue with email</span>
-                  </div>
+                {/* Email Input */}
+                <div className="flex flex-col space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    placeholder="Enter your email"
+                  />
                 </div>
 
-                {/* Email/Password Form */}
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium">
-                      Email Address
-                    </Label>
-                    <div className="relative group">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 transition-colors group-focus-within:text-blue-600" />
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your email address"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
-                        className="pl-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium">
-                      Password
-                    </Label>
-                    <div className="relative group">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4 transition-colors group-focus-within:text-blue-600" />
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
-                        value={formData.password}
-                        onChange={(e) => handleInputChange("password", e.target.value)}
-                        className="pl-10 pr-10 h-12 transition-all duration-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                        required
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4 text-muted-foreground" />
-                        ) : (
-                          <Eye className="h-4 w-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        id="remember"
-                        type="checkbox"
-                        checked={formData.rememberMe}
-                        onChange={(e) => handleInputChange("rememberMe", e.target.checked)}
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <Label htmlFor="remember" className="text-sm text-muted-foreground">
-                        Remember me
-                      </Label>
-                    </div>
-                    <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
-                      Forgot password?
-                    </Link>
-                  </div>
-
+                {/* Password Input */}
+                <div className="flex flex-col space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={formData.password}
+                    onChange={(e) => handleInputChange("password", e.target.value)}
+                    placeholder="Enter your password"
+                  />
                   <Button
-                    type="submit"
-                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
-                    disabled={isLoading || googleLoading}
+                    type="button"
+                    variant="ghost"
+                    className="text-sm"
+                    onClick={() => setShowPassword(!showPassword)}
                   >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      <>
-                        Sign In
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
+                    {showPassword ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+                    {showPassword ? "Hide" : "Show"} Password
                   </Button>
-                </form>
-
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Don't have an account?{" "}
-                    <Link href="/signup" className="text-blue-600 hover:underline font-medium">
-                      Sign up for free
-                    </Link>
-                  </p>
                 </div>
+
+                {/* Remember Me Checkbox */}
+                <div className="flex items-center space-x-2">
+                  <input
+                    id="rememberMe"
+                    type="checkbox"
+                    checked={formData.rememberMe}
+                    onChange={(e) => handleInputChange("rememberMe", e.target.checked)}
+                    className="w-4 h-4 accent-blue-600"
+                  />
+                  <Label htmlFor="rememberMe">Remember me</Label>
+                </div>
+
+                {/* Submit Button */}
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  ) : (
+                    <ArrowRight className="w-5 h-5 mr-2" />
+                  )}
+                  Sign In
+                </Button>
               </CardContent>
             </Card>
-
-            {/* Trust Indicators */}
-            <div className="mt-8 text-center space-y-4">
-              <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1">
-                  <Shield className="h-3 w-3" />
-                  <span>Secure & Private</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Globe className="h-3 w-3" />
-                  <span>Global Network</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <CheckCircle className="h-3 w-3" />
-                  <span>Trusted by 50k+</span>
-                </div>
-              </div>
-
-              <p className="text-xs text-muted-foreground">
-                By signing in, you agree to our{" "}
-                <Link href="/terms" className="text-blue-600 hover:underline">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="text-blue-600 hover:underline">
-                  Privacy Policy
-                </Link>
-              </p>
-            </div>
           </div>
         </div>
       </div>
