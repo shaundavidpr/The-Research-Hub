@@ -8,33 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  Plus, 
-  Search, 
-  Download, 
-  Copy, 
-  Edit, 
-  Trash2,
-  BookMarked,
-  FileDown,
-  Brain,
-  Star,
-  Filter,
-  SortAsc,
-  Import,
-  Export,
-  Globe,
-  Calendar,
-  Users,
-  Tag,
-  Quote,
-  Link as LinkIcon,
-  CheckCircle,
-  AlertCircle,
-  Zap,
-  Sparkles,
-  RefreshCw
-} from "lucide-react"
+import { Plus, Search, Download, Copy, Edit, Trash2, BookMarked, FileDown, Brain, Star, Filter, SortAsc, Import, Import as Export, Globe, Calendar, Users, Tag, Quote, Link as LinkIcon, CheckCircle, AlertCircle, Zap, Sparkles, RefreshCw } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@/hooks/use-user"
 import { createClient } from "@/lib/supabase/client"
