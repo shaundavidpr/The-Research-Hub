@@ -2,7 +2,7 @@
 
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
-import { CitationManager } from "@/components/citation-manager"
+import { EnhancedCitationManager } from "@/components/enhanced-citation-manager"
 import { BookMarked } from "lucide-react"
 
 export default function CitationsPage() {
@@ -14,7 +14,7 @@ export default function CitationsPage() {
         icon={<BookMarked className="h-5 w-5 text-muted-foreground" />}
       />
 
-      <CitationManager />
+      <EnhancedCitationManager />
     </DashboardShell>
   )
 }

@@ -2,7 +2,7 @@
 
 import { DashboardHeader } from "@/components/dashboard-header"
 import { DashboardShell } from "@/components/dashboard-shell"
-import { FileManager } from "@/components/file-manager"
+import { EnhancedFileManager } from "@/components/enhanced-file-manager"
 import { Upload, FolderOpen } from "lucide-react"
 
 export default function FilesPage() {
@@ -14,7 +14,7 @@ export default function FilesPage() {
         icon={<FolderOpen className="h-5 w-5 text-muted-foreground" />}
       />
 
-      <FileManager />
+      <EnhancedFileManager />
     </DashboardShell>
   )
 }
