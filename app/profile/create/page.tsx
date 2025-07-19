@@ -1,88 +1,32 @@
 "use client"
 
+import { Checkbox } from "@/components/ui/checkbox"
+
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { toast } from "@/hooks/use-toast"
-import { Brain, User, GraduationCap, Heart, Settings, Camera, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { DashboardShell } from "@/components/dashboard-shell"
+import { useToast } from "@/hooks/use-toast"
+import { Globe, Users, Plus, X, Loader2 } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
 
-interface ProfileData {
-  // Basic Information
-  name: string
-  email: string
-  title: string
-  institution: string
-  department: string
-  bio: string
-  avatar: string
-
-  // Academic Information
-  degree: string
-  field: string
-  advisor: string
-  yearStarted: string
-  orcid: string
-  googleScholar: string
-
-  // Research Interests
-  researchTopics: string[]
-  methodologies: string[]
-  specializations: string[]
-
-  // Privacy & Preferences
-  profileVisibility: string
-  allowMessages: boolean
-  allowCollaboration: boolean
-  emailNotifications: boolean
-  researchUpdates: boolean
-}
-
-const ACADEMIC_TITLES = [
-  { value: "undergraduate", label: "Undergraduate Student" },
-  { value: "graduate", label: "Graduate Student" },
-  { value: "masters", label: "Master's Student" },
-  { value: "phd", label: "PhD Student" },
-  { value: "phd-candidate", label: "PhD Candidate" },
-  { value: "postdoc", label: "Postdoctoral Researcher" },
-  { value: "research-assistant", label: "Research Assistant" },
-  { value: "research-associate", label: "Research Associate" },
-  { value: "research-scientist", label: "Research Scientist" },
-  { value: "senior-researcher", label: "Senior Researcher" },
-  { value: "principal-investigator", label: "Principal Investigator" },
-  { value: "lecturer", label: "Lecturer" },
-  { value: "assistant-professor", label: "Assistant Professor" },
-  { value: "associate-professor", label: "Associate Professor" },
-  { value: "professor", label: "Professor" },
-  { value: "emeritus-professor", label: "Professor Emeritus" },
-  { value: "visiting-scholar", label: "Visiting Scholar" },
-  { value: "industry-researcher", label: "Industry Researcher" },
-  { value: "consultant", label: "Research Consultant" },
-  { value: "independent", label: "Independent Researcher" },
-  { value: "other", label: "Other" },
-]
-
-const RESEARCH_TOPICS = [
-  "Artificial Intelligence",
-  "Machine Learning",
-  "Data Science",
-  "Computer Vision",
-  "Natural Language Processing",
-  "Robotics",
-  "Cybersecurity",
-  "Blockchain",
-  "Quantum Computing",
-  "Bioinformatics",
-  "Climate Science",
-  "Neuroscience",
+const RESEARCH_FIELDS = [
+  "Computer Science",
+  "Engineering",
+  "Medicine",
+  "Biology",
+  "Chemistry",
+  "Physics",
+  "Mathematics",
   "Psychology",
   "Sociology",
   "Economics",
@@ -90,35 +34,36 @@ const RESEARCH_TOPICS = [
   "History",
   "Literature",
   "Philosophy",
-  "Mathematics",
-  "Physics",
-  "Chemistry",
-  "Biology",
+  "Environmental Science",
+  "Neuroscience",
+  "Biotechnology",
+  "Materials Science",
+  "Astronomy",
+  "Geology",
+  "Anthropology",
+  "Education",
+  "Business",
+  "Law",
+  "Art",
+  "Music",
+  "Architecture",
 ]
 
-const METHODOLOGIES = [
-  "Quantitative Research",
-  "Qualitative Research",
-  "Mixed Methods",
-  "Experimental Design",
-  "Survey Research",
-  "Case Study",
-  "Ethnography",
-  "Content Analysis",
-  "Meta-Analysis",
-  "Statistical Modeling",
-  "Machine Learning",
-  "Deep Learning",
-  "Simulation",
-  "Field Research",
-  "Laboratory Research",
-  "Computational Methods",
-]
+const DEGREES = ["Bachelor's", "Master's", "PhD", "Postdoc", "Professor", "Other"]
 
 export default function CreateProfilePage() {
   const router = useRouter()
-  const [currentStep, setCurrentStep] = useState(1)
-  const [profileData, setProfileData] = useState<ProfileData>({
+  const { toast } = useToast()
+  const supabase = createClient()
+  const [userId, setUserId] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [newResearchTopic, setNewResearchTopic] = useState("")
+  const [newMethodology, setNewMethodology] = useState("")
+  const [newSpecialization, setNewSpecialization] = useState("")
+
+  const [profileData, setProfileData] = useState({
     name: "",
     email: "",
     title: "",
@@ -132,9 +77,9 @@ export default function CreateProfilePage() {
     yearStarted: "",
     orcid: "",
     googleScholar: "",
-    researchTopics: [],
-    methodologies: [],
-    specializations: [],
+    researchTopics: [] as string[],
+    methodologies: [] as string[],
+    specializations: [] as string[],
     profileVisibility: "public",
     allowMessages: true,
     allowCollaboration: true,
@@ -143,539 +88,510 @@ export default function CreateProfilePage() {
   })
 
   useEffect(() => {
-    // Load user data from signup
-    const userData = localStorage.getItem("currentUser")
-    if (userData) {
-      const user = JSON.parse(userData)
+    const fetchUser = async () => {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+      if (userError || !user) {
+        router.push("/login") // Redirect to login if not authenticated
+        return
+      }
+      setUserId(user.id)
       setProfileData((prev) => ({
         ...prev,
-        name: user.name || "",
+        name: user.user_metadata?.name || "",
         email: user.email || "",
       }))
-    }
-  }, [])
 
-  const handleInputChange = (field: keyof ProfileData, value: any) => {
-    setProfileData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-  }
-
-  const handleArrayToggle = (field: keyof ProfileData, value: string) => {
-    setProfileData((prev) => ({
-      ...prev,
-      [field]: (prev[field] as string[]).includes(value)
-        ? (prev[field] as string[]).filter((item) => item !== value)
-        : [...(prev[field] as string[]), value],
-    }))
-  }
-
-  const validateStep = (step: number): boolean => {
-    switch (step) {
-      case 1:
-        return !!(profileData.name && profileData.email && profileData.title && profileData.institution)
-      case 2:
-        return !!(profileData.degree && profileData.field)
-      case 3:
-        return profileData.researchTopics.length > 0
-      case 4:
-        return true // Privacy step is optional
-      default:
-        return false
-    }
-  }
-
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
-      if (currentStep < 4) {
-        setCurrentStep(currentStep + 1)
-      } else {
-        handleSubmit()
+      // Check if profile already exists
+      try {
+        const response = await fetch(`/api/profile/${user.id}`)
+        if (response.ok) {
+          const existingProfile = await response.json()
+          // If profile exists, redirect to dashboard or profile view
+          toast({
+            title: "Profile already exists",
+            description: "You already have a profile. Redirecting to dashboard.",
+            variant: "default",
+          })
+          router.push("/dashboard")
+        } else if (response.status === 404) {
+          // Profile does not exist, proceed with creation
+          setIsLoading(false)
+        } else {
+          throw new Error("Failed to check existing profile.")
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to check existing profile.")
+        setIsLoading(false)
       }
-    } else {
-      toast({
-        title: "Please complete required fields",
-        description: "Fill in all required fields before proceeding.",
-        variant: "destructive",
-      })
+    }
+    fetchUser()
+  }, [router, supabase, toast])
+
+  const handleInputChange = (field: string, value: string | boolean | string[]) => {
+    setProfileData((prev) => ({ ...prev, [field]: value }))
+    if (error) setError(null)
+  }
+
+  const addToList = (
+    listName: "researchTopics" | "methodologies" | "specializations",
+    newItem: string,
+    setter: React.Dispatch<React.SetStateAction<string>>,
+  ) => {
+    if (newItem.trim() && !profileData[listName].includes(newItem.trim())) {
+      setProfileData((prev) => ({
+        ...prev,
+        [listName]: [...prev[listName], newItem.trim()],
+      }))
+      setter("")
     }
   }
 
-  const handleSubmit = async () => {
+  const removeFromList = (listName: "researchTopics" | "methodologies" | "specializations", itemToRemove: string) => {
+    setProfileData((prev) => ({
+      ...prev,
+      [listName]: prev[listName].filter((item) => item !== itemToRemove),
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
+
+    if (!userId) {
+      setError("User not authenticated. Please log in again.")
+      setIsSubmitting(false)
+      return
+    }
+
     try {
-      // Initialize profile with zero stats
-      const completeProfile = {
-        ...profileData,
-        followers: 0,
-        following: 0,
-        papers: 0,
-        citations: 0,
-        hIndex: 0,
-        joinDate: new Date().toISOString(),
-        achievements: [],
-        researchInterests: profileData.researchTopics,
-        skills: [],
-        languages: [],
-        socialLinks: {
-          twitter: "",
-          linkedin: "",
-          github: "",
-          orcid: profileData.orcid || "",
-          googleScholar: profileData.googleScholar || "",
+      const response = await fetch("/api/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        location: "",
-        website: "",
-        phone: "",
-        isPublic: profileData.profileVisibility === "public",
+        body: JSON.stringify({ ...profileData, userId }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast({
+          title: "Profile created successfully!",
+          description: "Your research profile is now live.",
+        })
+        router.push("/dashboard")
+      } else {
+        setError(data.error || "Failed to create profile.")
       }
-
-      // Save to localStorage (in real app, this would be an API call)
-      localStorage.setItem("userProfile", JSON.stringify(completeProfile))
-
-      toast({
-        title: "Profile created successfully!",
-        description: "Welcome to The Research Hub community.",
-      })
-
-      router.push("/dashboard")
-    } catch (error) {
-      toast({
-        title: "Error creating profile",
-        description: "Please try again later.",
-        variant: "destructive",
-      })
+    } catch (err: any) {
+      setError(err.message || "Network error. Please try again.")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <User className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h2 className="text-2xl font-bold">Basic Information</h2>
-              <p className="text-muted-foreground">Tell us about yourself and your academic background</p>
-            </div>
+  if (isLoading) {
+    return (
+      <DashboardShell>
+        <div className="flex items-center justify-center h-full">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2 text-muted-foreground">Loading profile...</span>
+        </div>
+      </DashboardShell>
+    )
+  }
 
-            {/* Avatar Upload */}
-            <div className="flex justify-center mb-6">
-              <div className="relative">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={profileData.avatar || "/placeholder.svg"} />
-                  <AvatarFallback className="text-lg">
-                    {profileData.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <Button
-                  size="sm"
-                  className="absolute -bottom-2 -right-2 rounded-full h-8 w-8 p-0"
-                  onClick={() => {
-                    toast({
-                      title: "Avatar upload",
-                      description: "Avatar upload functionality will be implemented with file storage.",
-                    })
-                  }}
-                >
-                  <Camera className="h-4 w-4" />
-                </Button>
+  return (
+    <DashboardShell>
+      <div className="max-w-4xl mx-auto space-y-8 py-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold mb-2">Create Your Research Profile</h1>
+          <p className="text-muted-foreground">Share your expertise and connect with the global research community.</p>
+        </div>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Basic Information</CardTitle>
+              <CardDescription>Tell us about yourself.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    value={profileData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    placeholder="Dr. Jane Smith"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={profileData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    placeholder="jane.smith@university.edu"
+                    disabled // Email usually comes from auth
+                  />
+                </div>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    value={profileData.title}
+                    onChange={(e) => handleInputChange("title", e.target.value)}
+                    placeholder="Professor, Research Scientist, PhD Candidate"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="institution">Institution</Label>
+                  <Input
+                    id="institution"
+                    value={profileData.institution}
+                    onChange={(e) => handleInputChange("institution", e.target.value)}
+                    placeholder="University of Research"
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  value={profileData.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder=""
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profileData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  placeholder=""
-                  disabled
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="title">Academic Title *</Label>
-                <Select value={profileData.title} onValueChange={(value) => handleInputChange("title", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select your title" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ACADEMIC_TITLES.map((title) => (
-                      <SelectItem key={title.value} value={title.value}>
-                        {title.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="institution">Institution *</Label>
-                <Input
-                  id="institution"
-                  value={profileData.institution}
-                  onChange={(e) => handleInputChange("institution", e.target.value)}
-                  placeholder=""
-                />
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="department">Department</Label>
                 <Input
                   id="department"
                   value={profileData.department}
                   onChange={(e) => handleInputChange("department", e.target.value)}
-                  placeholder=""
+                  placeholder="Department of Computer Science"
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                value={profileData.bio}
-                onChange={(e) => handleInputChange("bio", e.target.value)}
-                placeholder=""
-                rows={4}
-              />
-            </div>
-          </div>
-        )
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <GraduationCap className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h2 className="text-2xl font-bold">Academic Information</h2>
-              <p className="text-muted-foreground">Share your academic credentials and research details</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="degree">Highest Degree *</Label>
-                <Select value={profileData.degree} onValueChange={(value) => handleInputChange("degree", value)}>
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  value={profileData.bio}
+                  onChange={(e) => handleInputChange("bio", e.target.value)}
+                  placeholder="A brief description of your research interests and background."
+                  rows={4}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="avatar">Avatar URL (Optional)</Label>
+                <Input
+                  id="avatar"
+                  value={profileData.avatar}
+                  onChange={(e) => handleInputChange("avatar", e.target.value)}
+                  placeholder="https://example.com/your-avatar.jpg"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Academic Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Academic Details</CardTitle>
+              <CardDescription>Your academic background and affiliations.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="degree">Highest Degree</Label>
+                  <Select value={profileData.degree} onValueChange={(value) => handleInputChange("degree", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select degree" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DEGREES.map((degree) => (
+                        <SelectItem key={degree} value={degree}>
+                          {degree}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="field">Primary Research Field</Label>
+                  <Select value={profileData.field} onValueChange={(value) => handleInputChange("field", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select field" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RESEARCH_FIELDS.map((field) => (
+                        <SelectItem key={field} value={field}>
+                          {field}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="advisor">Advisor/Supervisor (if applicable)</Label>
+                  <Input
+                    id="advisor"
+                    value={profileData.advisor}
+                    onChange={(e) => handleInputChange("advisor", e.target.value)}
+                    placeholder="Prof. John Doe"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="yearStarted">Year Started Research</Label>
+                  <Input
+                    id="yearStarted"
+                    type="number"
+                    value={profileData.yearStarted}
+                    onChange={(e) => handleInputChange("yearStarted", e.target.value)}
+                    placeholder="YYYY"
+                    min="1900"
+                    max={new Date().getFullYear().toString()}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="orcid">ORCID iD (Optional)</Label>
+                  <Input
+                    id="orcid"
+                    value={profileData.orcid}
+                    onChange={(e) => handleInputChange("orcid", e.target.value)}
+                    placeholder="e.g., 0000-0002-1825-0097"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="googleScholar">Google Scholar Profile (Optional)</Label>
+                  <Input
+                    id="googleScholar"
+                    value={profileData.googleScholar}
+                    onChange={(e) => handleInputChange("googleScholar", e.target.value)}
+                    placeholder="Link to your Google Scholar profile"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Research Interests */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Research Interests</CardTitle>
+              <CardDescription>Keywords that describe your research focus.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {profileData.researchTopics.map((topic, index) => (
+                  <Badge key={index} variant="secondary" className="text-sm">
+                    {topic}
+                    <button
+                      type="button"
+                      onClick={() => removeFromList("researchTopics", topic)}
+                      className="ml-2 text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newResearchTopic}
+                  onChange={(e) => setNewResearchTopic(e.target.value)}
+                  placeholder="Add research topic (e.g., AI Ethics)"
+                  onKeyPress={(e) =>
+                    e.key === "Enter" &&
+                    (e.preventDefault(), addToList("researchTopics", newResearchTopic, setNewResearchTopic))
+                  }
+                />
+                <Button
+                  type="button"
+                  onClick={() => addToList("researchTopics", newResearchTopic, setNewResearchTopic)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Methodologies */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Methodologies</CardTitle>
+              <CardDescription>The research methods you commonly employ.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {profileData.methodologies.map((method, index) => (
+                  <Badge key={index} variant="secondary" className="text-sm">
+                    {method}
+                    <button
+                      type="button"
+                      onClick={() => removeFromList("methodologies", method)}
+                      className="ml-2 text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newMethodology}
+                  onChange={(e) => setNewMethodology(e.target.value)}
+                  placeholder="Add methodology (e.g., Quantitative Analysis)"
+                  onKeyPress={(e) =>
+                    e.key === "Enter" &&
+                    (e.preventDefault(), addToList("methodologies", newMethodology, setNewMethodology))
+                  }
+                />
+                <Button type="button" onClick={() => addToList("methodologies", newMethodology, setNewMethodology)}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Specializations */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Specializations</CardTitle>
+              <CardDescription>Specific areas of expertise within your field.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap gap-2">
+                {profileData.specializations.map((spec, index) => (
+                  <Badge key={index} variant="secondary" className="text-sm">
+                    {spec}
+                    <button
+                      type="button"
+                      onClick={() => removeFromList("specializations", spec)}
+                      className="ml-2 text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newSpecialization}
+                  onChange={(e) => setNewSpecialization(e.target.value)}
+                  placeholder="Add specialization (e.g., Natural Language Processing)"
+                  onKeyPress={(e) =>
+                    e.key === "Enter" &&
+                    (e.preventDefault(), addToList("specializations", newSpecialization, setNewSpecialization))
+                  }
+                />
+                <Button
+                  type="button"
+                  onClick={() => addToList("specializations", newSpecialization, setNewSpecialization)}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Privacy & Notifications */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">Privacy & Notifications</CardTitle>
+              <CardDescription>Control your profile visibility and communication preferences.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="profileVisibility">Profile Visibility</Label>
+                <Select
+                  value={profileData.profileVisibility}
+                  onValueChange={(value) => handleInputChange("profileVisibility", value)}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select your degree" />
+                    <SelectValue placeholder="Select visibility" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="bachelors">Bachelor's</SelectItem>
-                    <SelectItem value="masters">Master's</SelectItem>
-                    <SelectItem value="phd">PhD</SelectItem>
-                    <SelectItem value="postdoc">Postdoc</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="public">
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4" /> Public - Anyone can view
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="institutional">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4" /> Institutional - Members of your institution only
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="private">
+                      <div className="flex items-center gap-2">
+                        <Lock className="h-4 w-4" /> Private - Only you
+                      </div>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="field">Research Field *</Label>
-                <Input
-                  id="field"
-                  value={profileData.field}
-                  onChange={(e) => handleInputChange("field", e.target.value)}
-                  placeholder=""
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="allowMessages"
+                  checked={profileData.allowMessages}
+                  onCheckedChange={(checked) => handleInputChange("allowMessages", checked)}
                 />
+                <Label htmlFor="allowMessages">Allow other researchers to send me messages</Label>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="advisor">Advisor/Supervisor</Label>
-                <Input
-                  id="advisor"
-                  value={profileData.advisor}
-                  onChange={(e) => handleInputChange("advisor", e.target.value)}
-                  placeholder=""
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="allowCollaboration"
+                  checked={profileData.allowCollaboration}
+                  onCheckedChange={(checked) => handleInputChange("allowCollaboration", checked)}
                 />
+                <Label htmlFor="allowCollaboration">Open to collaboration requests</Label>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="yearStarted">Year Started</Label>
-                <Input
-                  id="yearStarted"
-                  type="number"
-                  value={profileData.yearStarted}
-                  onChange={(e) => handleInputChange("yearStarted", e.target.value)}
-                  placeholder=""
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="emailNotifications"
+                  checked={profileData.emailNotifications}
+                  onCheckedChange={(checked) => handleInputChange("emailNotifications", checked)}
                 />
+                <Label htmlFor="emailNotifications">Receive email notifications</Label>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="orcid">ORCID ID</Label>
-                <Input
-                  id="orcid"
-                  value={profileData.orcid}
-                  onChange={(e) => handleInputChange("orcid", e.target.value)}
-                  placeholder=""
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="researchUpdates"
+                  checked={profileData.researchUpdates}
+                  onCheckedChange={(checked) => handleInputChange("researchUpdates", checked)}
                 />
+                <Label htmlFor="researchUpdates">Receive research updates and newsletters</Label>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="googleScholar">Google Scholar Profile</Label>
-                <Input
-                  id="googleScholar"
-                  value={profileData.googleScholar}
-                  onChange={(e) => handleInputChange("googleScholar", e.target.value)}
-                  placeholder=""
-                />
-              </div>
-            </div>
-          </div>
-        )
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <Heart className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h2 className="text-2xl font-bold">Research Interests</h2>
-              <p className="text-muted-foreground">Help us understand your research focus and methodologies</p>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <Label className="text-base font-semibold mb-3 block">Research Topics *</Label>
-                <p className="text-sm text-muted-foreground mb-3">
-                  Select topics that align with your research interests
-                </p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {RESEARCH_TOPICS.map((topic) => (
-                    <div key={topic} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`topic-${topic}`}
-                        checked={profileData.researchTopics.includes(topic)}
-                        onCheckedChange={() => handleArrayToggle("researchTopics", topic)}
-                      />
-                      <Label htmlFor={`topic-${topic}`} className="text-sm cursor-pointer">
-                        {topic}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-2">
-                  <Badge variant="outline" className="text-xs">
-                    {profileData.researchTopics.length} selected
-                  </Badge>
-                </div>
-              </div>
-
-              <div>
-                <Label className="text-base font-semibold mb-3 block">Research Methodologies</Label>
-                <p className="text-sm text-muted-foreground mb-3">Select methodologies you use in your research</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                  {METHODOLOGIES.map((methodology) => (
-                    <div key={methodology} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`methodology-${methodology}`}
-                        checked={profileData.methodologies.includes(methodology)}
-                        onCheckedChange={() => handleArrayToggle("methodologies", methodology)}
-                      />
-                      <Label htmlFor={`methodology-${methodology}`} className="text-sm cursor-pointer">
-                        {methodology}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-2">
-                  <Badge variant="outline" className="text-xs">
-                    {profileData.methodologies.length} selected
-                  </Badge>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="specializations">Specializations</Label>
-                <Textarea
-                  id="specializations"
-                  placeholder=""
-                  rows={3}
-                  onChange={(e) => {
-                    const specs = e.target.value
-                      .split(",")
-                      .map((s) => s.trim())
-                      .filter((s) => s)
-                    handleInputChange("specializations", specs)
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )
-
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <Settings className="h-12 w-12 text-primary mx-auto mb-4" />
-              <h2 className="text-2xl font-bold">Privacy & Preferences</h2>
-              <p className="text-muted-foreground">Configure your privacy settings and notification preferences</p>
-            </div>
-
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-base font-semibold">Profile Visibility</Label>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Who can see your profile and research information?
-                  </p>
-                  <Select
-                    value={profileData.profileVisibility}
-                    onValueChange={(value) => handleInputChange("profileVisibility", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="public">Public - Anyone can see your profile</SelectItem>
-                      <SelectItem value="researchers">Researchers Only - Only verified researchers</SelectItem>
-                      <SelectItem value="institution">Institution - Only members of your institution</SelectItem>
-                      <SelectItem value="private">Private - Only you can see your profile</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-base font-semibold">Communication Preferences</Label>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="allowMessages"
-                      checked={profileData.allowMessages}
-                      onCheckedChange={(checked) => handleInputChange("allowMessages", checked)}
-                    />
-                    <Label htmlFor="allowMessages" className="cursor-pointer">
-                      Allow other researchers to send me messages
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="allowCollaboration"
-                      checked={profileData.allowCollaboration}
-                      onCheckedChange={(checked) => handleInputChange("allowCollaboration", checked)}
-                    />
-                    <Label htmlFor="allowCollaboration" className="cursor-pointer">
-                      Open to collaboration requests
-                    </Label>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-base font-semibold">Notification Preferences</Label>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="emailNotifications"
-                      checked={profileData.emailNotifications}
-                      onCheckedChange={(checked) => handleInputChange("emailNotifications", checked)}
-                    />
-                    <Label htmlFor="emailNotifications" className="cursor-pointer">
-                      Email notifications for messages and updates
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="researchUpdates"
-                      checked={profileData.researchUpdates}
-                      onCheckedChange={(checked) => handleInputChange("researchUpdates", checked)}
-                    />
-                    <Label htmlFor="researchUpdates" className="cursor-pointer">
-                      Weekly research updates and recommendations
-                    </Label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )
-
-      default:
-        return null
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white py-8 px-4">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-              <Brain className="h-5 w-5 text-white" />
-            </div>
-            <span className="text-xl font-bold">The Research Hub</span>
-          </div>
-          <h1 className="text-3xl font-bold mb-2">Create Your Research Profile</h1>
-          <p className="text-muted-foreground">
-            Step {currentStep} of 4 - Let's build your professional research profile
-          </p>
-        </div>
-
-        {/* Progress */}
-        <div className="mb-8">
-          <div className="flex justify-between text-sm text-muted-foreground mb-2">
-            <span>Progress</span>
-            <span>{Math.round((currentStep / 4) * 100)}% Complete</span>
-          </div>
-          <Progress value={(currentStep / 4) * 100} className="h-2" />
-        </div>
-
-        {/* Form Card */}
-        <Card>
-          <CardContent className="p-8">{renderStep()}</CardContent>
-        </Card>
-
-        {/* Navigation */}
-        <div className="flex justify-between mt-8">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
-            disabled={currentStep === 1}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Previous
-          </Button>
-
-          <Button onClick={handleNext} disabled={!validateStep(currentStep)}>
-            {currentStep === 4 ? (
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? (
               <>
-                Complete Profile
-                <CheckCircle className="ml-2 h-4 w-4" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Profile...
               </>
             ) : (
-              <>
-                Next
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </>
+              "Create Profile"
             )}
           </Button>
-        </div>
-
-        {/* Step Indicators */}
-        <div className="flex justify-center mt-8 space-x-2">
-          {[1, 2, 3, 4].map((step) => (
-            <div key={step} className={`w-3 h-3 rounded-full ${step <= currentStep ? "bg-primary" : "bg-muted"}`} />
-          ))}
-        </div>
+        </form>
       </div>
-    </div>
+    </DashboardShell>
   )
 }

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,8 @@ import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/hooks/use-toast"
-import { Brain, Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react"
+import { Brain, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
 
 declare global {
   interface Window {
@@ -34,6 +35,37 @@ export default function SignupPage() {
   })
   const [error, setError] = useState("")
   const [passwordStrength, setPasswordStrength] = useState(0)
+  const supabase = createClient()
+
+  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+  useEffect(() => {
+    if (!googleClientId) {
+      setError(
+        "Google Client ID is not set. Please ensure NEXT_PUBLIC_GOOGLE_CLIENT_ID is configured in your environment variables.",
+      )
+      return
+    }
+
+    if (window.google) {
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: handleGoogleCallback,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        use_fedcm_for_prompt: false, // Explicitly disable FedCM
+      })
+      // Render button if prompt is not displayed or skipped
+      window.google.accounts.id.renderButton(document.getElementById("google-signup-button"), {
+        theme: "outline",
+        size: "large",
+        width: "100%",
+        text: "signup_with",
+      })
+    } else {
+      setError("Google Identity Services script not loaded. Please check your network or script tag.")
+    }
+  }, [googleClientId])
 
   const checkPasswordStrength = (password: string) => {
     let strength = 0
@@ -63,56 +95,29 @@ export default function SignupPage() {
     }
 
     try {
-      const response = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            name: formData.name,
+          },
         },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        }),
       })
 
-      const data = await response.json()
-
-      if (response.ok) {
+      if (signUpError) {
+        setError(signUpError.message)
+      } else if (data.user) {
         toast({
           title: "Welcome to The Research Hub!",
-          description: data.message || "Your account has been created successfully.",
+          description: "Your account has been created successfully. Please check your email to verify your account.",
         })
-        router.push("/profile/create")
-      } else {
-        setError(data.error || "Failed to create account")
+        router.push("/profile/create") // Redirect to profile creation after signup
       }
-    } catch (error) {
-      setError("Network error. Please try again.")
+    } catch (err: any) {
+      setError(err.message || "Network error. Please try again.")
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const handleGoogleSignUp = () => {
-    if (typeof window !== "undefined" && window.google) {
-      window.google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
-        callback: handleGoogleCallback,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      })
-
-      window.google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // Fallback to popup if prompt fails
-          window.google.accounts.id.renderButton(document.getElementById("google-signup-button"), {
-            theme: "outline",
-            size: "large",
-            width: "100%",
-            text: "signup_with",
-          })
-        }
-      })
     }
   }
 
@@ -121,32 +126,25 @@ export default function SignupPage() {
     setError("")
 
     try {
-      const res = await fetch("/api/auth/google", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ credential: response.credential }),
+      const { data, error: signInError } = await supabase.auth.signInWithIdToken({
+        provider: "google",
+        token: response.credential,
       })
 
-      const data = await res.json()
-
-      if (res.ok) {
+      if (signInError) {
+        setError(signInError.message)
+      } else if (data.session) {
         toast({
-          title: data.isNewUser ? "Welcome to The Research Hub!" : "Welcome back!",
-          description: data.message || "You've been signed in successfully.",
+          title: "Welcome to The Research Hub!",
+          description: "You've been signed in successfully.",
         })
-
-        if (data.isNewUser) {
-          router.push("/profile/create")
-        } else {
-          router.push("/dashboard")
-        }
-      } else {
-        setError(data.error || "Google sign-up failed")
+        // Check if it's a new user or existing
+        // For simplicity, we'll always redirect to dashboard for now,
+        // but in a real app, you'd check if profile exists.
+        router.push("/dashboard")
       }
-    } catch (error) {
-      setError("Network error. Please try again.")
+    } catch (err: any) {
+      setError(err.message || "Network error. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -181,10 +179,11 @@ export default function SignupPage() {
         async
         defer
         onLoad={() => {
-          if (typeof window !== "undefined" && window.google) {
+          if (typeof window !== "undefined" && window.google && googleClientId) {
             window.google.accounts.id.initialize({
-              client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+              client_id: googleClientId,
               callback: handleGoogleCallback,
+              use_fedcm_for_prompt: false, // Explicitly disable FedCM
             })
           }
         }}
@@ -221,8 +220,14 @@ export default function SignupPage() {
                 type="button"
                 variant="outline"
                 className="w-full h-12 bg-white hover:bg-gray-50"
-                onClick={handleGoogleSignUp}
-                disabled={isLoading}
+                onClick={() => {
+                  if (googleClientId) {
+                    window.google.accounts.id.prompt()
+                  } else {
+                    setError("Google Client ID is not configured.")
+                  }
+                }}
+                disabled={isLoading || !googleClientId}
               >
                 <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                   <path
@@ -325,29 +330,17 @@ export default function SignupPage() {
                   onCheckedChange={(checked) => handleInputChange("acceptTerms", checked)}
                 />
                 <Label htmlFor="acceptTerms" className="ml-2">
-                  I agree to the <span className="text-blue-600">terms and conditions</span>
+                  I agree to the{" "}
+                  <Link href="/terms" className="text-blue-600 hover:underline">
+                    terms and conditions
+                  </Link>
                 </Label>
               </div>
 
               <Button type="submit" className="w-full h-12" disabled={isLoading}>
                 {isLoading ? (
                   <span className="flex items-center justify-center">
-                    <svg className="w-5 h-5 mr-2 animate-spin" viewBox="0 0 24 24">
-                      <circle
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        fill="none"
-                        className="opacity-20"
-                      />
-                      <path
-                        d="M4 12a8 8 0 018-8V0C5.38 0 0 5.38 0 12h4zm2 5.29A7.93 7.93 0 0012 4a7.93 7.93 0 00-8 7.93v2.06z"
-                        fill="currentColor"
-                        className="opacity-100"
-                      />
-                    </svg>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                     Signing up...
                   </span>
                 ) : (

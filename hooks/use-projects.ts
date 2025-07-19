@@ -1,73 +1,146 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { db, Project } from '@/lib/database'
+import { useState, useEffect, useCallback } from "react"
+import type { Project } from "@/lib/database" // Assuming Project interface is still in lib/database
 
-export function useProjects(userId: string = 'demo-user') {
+interface UseProjectsOptions {
+  userId: string | undefined
+  projectId?: string // For fetching a single project
+}
+
+export function useProjects({ userId, projectId }: UseProjectsOptions) {
   const [projects, setProjects] = useState<Project[]>([])
+  const [project, setProject] = useState<Project | null>(null) // For single project fetch
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadProjects = async () => {
+  const fetchProjects = useCallback(async () => {
+    if (!userId) {
+      setProjects([])
+      setProject(null)
+      setLoading(false)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
     try {
-      setLoading(true)
-      const userProjects = await db.getProjects(userId)
-      setProjects(userProjects)
-    } catch (err) {
-      setError('Failed to load projects')
-      console.error(err)
+      const params = new URLSearchParams()
+      params.append("userId", userId)
+      if (projectId) params.append("projectId", projectId)
+
+      const response = await fetch(`/api/projects?${params.toString()}`)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch project(s): ${response.statusText}`)
+      }
+      const data = await response.json()
+      if (projectId) {
+        setProject(data)
+      } else {
+        setProjects(data)
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to load project(s).")
+      console.error("Error fetching project(s):", err)
     } finally {
       setLoading(false)
     }
-  }
-
-  const createProject = async (projectData: Omit<Project, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    try {
-      const newProject = await db.createProject({
-        ...projectData,
-        user_id: userId
-      })
-      setProjects(prev => [newProject, ...prev])
-      return newProject
-    } catch (err) {
-      setError('Failed to create project')
-      throw err
-    }
-  }
-
-  const updateProject = async (id: string, updates: Partial<Project>) => {
-    try {
-      const updatedProject = await db.updateProject(id, updates)
-      if (updatedProject) {
-        setProjects(prev => prev.map(project => project.id === id ? updatedProject : project))
-      }
-      return updatedProject
-    } catch (err) {
-      setError('Failed to update project')
-      throw err
-    }
-  }
-
-  const getProject = async (id: string) => {
-    try {
-      return await db.getProject(id)
-    } catch (err) {
-      setError('Failed to get project')
-      throw err
-    }
-  }
+  }, [userId, projectId])
 
   useEffect(() => {
-    loadProjects()
-  }, [userId])
+    fetchProjects()
+  }, [fetchProjects])
+
+  const createProject = useCallback(
+    async (projectData: Omit<Project, "id" | "created_at" | "updated_at" | "user_id">) => {
+      if (!userId) {
+        setError("User not authenticated.")
+        return null
+      }
+      try {
+        const response = await fetch("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...projectData, userId }),
+        })
+        if (!response.ok) {
+          throw new Error(`Failed to create project: ${response.statusText}`)
+        }
+        const newProject: Project = await response.json()
+        setProjects((prev) => [newProject, ...prev])
+        return newProject
+      } catch (err: any) {
+        setError(err.message || "Failed to create project.")
+        console.error("Error creating project:", err)
+        return null
+      }
+    },
+    [userId],
+  )
+
+  const updateProject = useCallback(
+    async (id: string, updates: Partial<Project>) => {
+      if (!userId) {
+        setError("User not authenticated.")
+        return null
+      }
+      try {
+        const response = await fetch(`/api/projects`, {
+          // PUT to base /api/projects with ID in body
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, userId, updates }),
+        })
+        if (!response.ok) {
+          throw new Error(`Failed to update project: ${response.statusText}`)
+        }
+        const updatedProject: Project = await response.json()
+        setProjects((prev) => prev.map((p) => (p.id === id ? updatedProject : p)))
+        if (project && project.id === id) {
+          setProject(updatedProject)
+        }
+        return updatedProject
+      } catch (err: any) {
+        setError(err.message || "Failed to update project.")
+        console.error("Error updating project:", err)
+        return null
+      }
+    },
+    [userId, project],
+  )
+
+  const deleteProject = useCallback(
+    async (id: string) => {
+      if (!userId) {
+        setError("User not authenticated.")
+        return false
+      }
+      try {
+        const response = await fetch(`/api/projects?id=${id}&userId=${userId}`, {
+          method: "DELETE",
+        })
+        if (!response.ok) {
+          throw new Error(`Failed to delete project: ${response.statusText}`)
+        }
+        setProjects((prev) => prev.filter((p) => p.id !== id))
+        return true
+      } catch (err: any) {
+        setError(err.message || "Failed to delete project.")
+        console.error("Error deleting project:", err)
+        return false
+      }
+    },
+    [userId],
+  )
 
   return {
     projects,
+    project,
     loading,
     error,
+    fetchProjects,
     createProject,
     updateProject,
-    getProject,
-    refreshProjects: loadProjects
+    deleteProject,
   }
 }

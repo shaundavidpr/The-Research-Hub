@@ -42,9 +42,7 @@ export default function HomePage() {
             <Link href="/community" className="text-sm font-medium hover:text-primary transition-colors">
               Community
             </Link>
-            <Link href="/pricing" className="text-sm font-medium hover:text-primary transition-colors">
-              Pricing
-            </Link>
+            {/* Removed Pricing Link */}
           </nav>
 
           <div className="flex items-center gap-3">
@@ -95,22 +93,22 @@ export default function HomePage() {
             </Button>
           </div>
 
-          {/* Stats */}
+          {/* Stats - Set to Zero */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-2xl mx-auto">
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">50K+</div>
+              <div className="text-3xl font-bold text-primary mb-2">0</div>
               <div className="text-sm text-muted-foreground">Active Researchers</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">2.5M+</div>
+              <div className="text-3xl font-bold text-primary mb-2">0</div>
               <div className="text-sm text-muted-foreground">Research Papers</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">15K+</div>
+              <div className="text-3xl font-bold text-primary mb-2">0</div>
               <div className="text-sm text-muted-foreground">Active Collaborations</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-primary mb-2">500K+</div>
+              <div className="text-3xl font-bold text-primary mb-2">0</div>
               <div className="text-sm text-muted-foreground">Citations Generated</div>
             </div>
           </div>
@@ -415,7 +413,7 @@ export default function HomePage() {
                   asChild
                 >
                   <Link href="/contact">
-                    Contact Sales
+                    Contact Support
                     <MessageSquare className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
@@ -460,11 +458,7 @@ export default function HomePage() {
                     Features
                   </Link>
                 </li>
-                <li>
-                  <Link href="/pricing" className="hover:text-white transition-colors">
-                    Pricing
-                  </Link>
-                </li>
+                {/* Removed Pricing Link */}
                 <li>
                   <Link href="/integrations" className="hover:text-white transition-colors">
                     Integrations
